@@ -61,3 +61,53 @@ pub fn compare_scenarios(
   }
   results
 }
+
+///|
+/// Baseline and alternative metrics, with signed changes where both are valid.
+pub(all) struct SensitivityResult {
+  baseline : ScenarioResult
+  changed : ScenarioResult
+  operating_profit_delta_fen : Int64?
+  break_even_delta_units : Int64?
+  safety_margin_delta_units : Int64?
+}
+
+///|
+/// Compare each alternative with one baseline.
+/// Use one changed input driver per alternative to make each effect interpretable.
+pub fn sensitivity_analysis(
+  baseline : @domain.CvpScenario,
+  alternatives : Array[@domain.CvpScenario],
+) -> Array[SensitivityResult] {
+  let base_result = evaluate_scenario(baseline)
+  let results : Array[SensitivityResult] = []
+  for alternative in alternatives {
+    let changed = evaluate_scenario(alternative)
+    results.push({
+      baseline: base_result,
+      changed,
+      operating_profit_delta_fen: signed_delta(
+        changed.operating_profit_fen,
+        base_result.operating_profit_fen,
+      ),
+      break_even_delta_units: signed_delta(
+        changed.break_even_units,
+        base_result.break_even_units,
+      ),
+      safety_margin_delta_units: signed_delta(
+        changed.safety_margin_units,
+        base_result.safety_margin_units,
+      ),
+    })
+  }
+  results
+}
+
+///|
+/// Signed change from a baseline; unavailable if either side is invalid.
+fn signed_delta(after : Int64?, before : Int64?) -> Int64? {
+  match (after, before) {
+    (Some(after_value), Some(before_value)) => Some(after_value - before_value)
+    _ => None
+  }
+}

@@ -20,6 +20,8 @@ pub fn revenue_for_target_profit(@domain.CvpCase, Int64) -> Int64?
 
 pub fn safety_margin_units(@domain.CvpCase, Int64) -> Int64?
 
+pub fn sensitivity_analysis(@domain.CvpScenario, Array[@domain.CvpScenario]) -> Array[SensitivityResult]
+
 pub fn units_for_target_profit(@domain.CvpCase, Int64) -> Int64?
 
 // Errors
@@ -36,6 +38,14 @@ pub(all) struct ScenarioResult {
   operating_profit_fen : Int64?
   safety_margin_units : Int64?
   issues : Array[ScenarioIssue]
+}
+
+pub(all) struct SensitivityResult {
+  baseline : ScenarioResult
+  changed : ScenarioResult
+  operating_profit_delta_fen : Int64?
+  break_even_delta_units : Int64?
+  safety_margin_delta_units : Int64?
 }
 
 // Type aliases
