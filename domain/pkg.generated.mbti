@@ -1,0 +1,26 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "WmmmQa/tidemark/domain"
+
+// Values
+
+// Errors
+
+// Types and methods
+pub(all) enum CaseIssue {
+  NonPositiveSellingPrice
+  NegativeVariableCost
+  NegativeFixedCost
+  NoPositiveContribution
+}
+
+pub(all) struct CvpCase {
+  selling_price_fen : Int64
+  variable_cost_fen : Int64
+  fixed_cost_fen : Int64
+}
+pub fn CvpCase::contribution_fen(Self) -> Int64
+pub fn CvpCase::issues(Self) -> Array[CaseIssue]
+
+// Type aliases
+
+// Traits

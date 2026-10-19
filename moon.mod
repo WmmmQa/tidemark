@@ -19,7 +19,12 @@ repository = "https://github.com/WmmmQa/tidemark"
 
 license = "Apache-2.0"
 
-keywords = ["cost-volume-profit", "management-accounting", "break-even", "scenario-analysis"]
+keywords = [
+  "cost-volume-profit",
+  "management-accounting",
+  "break-even",
+  "scenario-analysis",
+]
 
 preferred_target = "native"
 

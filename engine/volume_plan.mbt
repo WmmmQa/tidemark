@@ -9,7 +9,10 @@ pub fn operating_profit_fen(case : @domain.CvpCase, units : Int64) -> Int64? {
 
 ///|
 /// Planned units above or below break-even; negative values indicate a gap.
-pub fn safety_margin_units(case : @domain.CvpCase, planned_units : Int64) -> Int64? {
+pub fn safety_margin_units(
+  case : @domain.CvpCase,
+  planned_units : Int64,
+) -> Int64? {
   if planned_units < 0 {
     return None
   }

@@ -1,3 +1,3 @@
 import {
-  "WmmmQa/tidemark/domain" @domain,
+  "WmmmQa/tidemark/domain",
 }

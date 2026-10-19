@@ -1,0 +1,27 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "WmmmQa/tidemark/engine"
+
+import {
+  "WmmmQa/tidemark/domain",
+}
+
+// Values
+pub fn break_even_units(@domain.CvpCase) -> Int64?
+
+pub fn contribution_ratio_bps(@domain.CvpCase) -> Int64?
+
+pub fn operating_profit_fen(@domain.CvpCase, Int64) -> Int64?
+
+pub fn revenue_for_target_profit(@domain.CvpCase, Int64) -> Int64?
+
+pub fn safety_margin_units(@domain.CvpCase, Int64) -> Int64?
+
+pub fn units_for_target_profit(@domain.CvpCase, Int64) -> Int64?
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
