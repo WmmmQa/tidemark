@@ -20,6 +20,12 @@ Suppose a shop sells an item for ¥80, has ¥48 of variable cost per item, and i
 
 All money values in the calculation API use integer fen. The equations use whole units and round required quantities up, so a target is not understated by a fractional unit.
 
+The public calculation surface currently covers input diagnostics, unit contribution, contribution margin in basis points, break-even units, target-profit units and revenue, operating profit, and safety margin. Invalid cases return `None` from derived calculations; `CvpCase::issues()` reports the input reasons.
+
+## Project proposal
+
+The one-page scope, three intended usage scenarios, and boundary decisions are recorded in [`fieldbook/project-brief.md`](fieldbook/project-brief.md).
+
 ## Development
 
 Requires the MoonBit toolchain.
