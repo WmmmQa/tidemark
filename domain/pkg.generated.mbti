@@ -21,6 +21,12 @@ pub(all) struct CvpCase {
 pub fn CvpCase::contribution_fen(Self) -> Int64
 pub fn CvpCase::issues(Self) -> Array[CaseIssue]
 
+pub(all) struct CvpScenario {
+  label : String
+  case : CvpCase
+  planned_units : Int64
+}
+
 // Type aliases
 
 // Traits

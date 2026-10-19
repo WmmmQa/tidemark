@@ -8,7 +8,11 @@ import {
 // Values
 pub fn break_even_units(@domain.CvpCase) -> Int64?
 
+pub fn compare_scenarios(Array[@domain.CvpScenario]) -> Array[ScenarioResult]
+
 pub fn contribution_ratio_bps(@domain.CvpCase) -> Int64?
+
+pub fn evaluate_scenario(@domain.CvpScenario) -> ScenarioResult
 
 pub fn operating_profit_fen(@domain.CvpCase, Int64) -> Int64?
 
@@ -21,6 +25,18 @@ pub fn units_for_target_profit(@domain.CvpCase, Int64) -> Int64?
 // Errors
 
 // Types and methods
+pub(all) enum ScenarioIssue {
+  InvalidCase(@domain.CaseIssue)
+  NegativePlannedUnits
+}
+
+pub(all) struct ScenarioResult {
+  label : String
+  break_even_units : Int64?
+  operating_profit_fen : Int64?
+  safety_margin_units : Int64?
+  issues : Array[ScenarioIssue]
+}
 
 // Type aliases
 
