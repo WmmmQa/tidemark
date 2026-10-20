@@ -8,8 +8,10 @@ pub fn break_even_units(case : @domain.CvpCase) -> Int64? {
   if case.fixed_cost_fen == 0 {
     return Some(0L)
   }
-  let contribution = case.contribution_fen()
-  Some(ceil_div(case.fixed_cost_fen, contribution))
+  match case.contribution_fen() {
+    Some(contribution) => Some(ceil_div(case.fixed_cost_fen, contribution))
+    None => None
+  }
 }
 
 ///|

@@ -30,6 +30,7 @@ pub fn units_for_target_profit(@domain.CvpCase, Int64) -> Int64?
 pub(all) enum ScenarioIssue {
   InvalidCase(@domain.CaseIssue)
   NegativePlannedUnits
+  PlannedUnitsOutOfRange
 }
 
 pub(all) struct ScenarioResult {

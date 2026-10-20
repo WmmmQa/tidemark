@@ -20,7 +20,7 @@ Suppose a shop sells an item for ¥80, has ¥48 of variable cost per item, and i
 
 All money values in the calculation API use integer fen. The equations use whole units and round required quantities up, so a target is not understated by a fractional unit.
 
-The public calculation surface currently covers input diagnostics, unit contribution, contribution margin in basis points, break-even units, target-profit units and revenue, operating profit, and safety margin. Invalid cases return `None` from derived calculations; `CvpCase::issues()` reports the input reasons.
+The public calculation surface currently covers input diagnostics, unit contribution, contribution margin in basis points, break-even units, target-profit units and revenue, operating profit, and safety margin. Invalid cases return `None` from derived calculations; `CvpCase::issues()` reports the input reasons. To keep every intermediate result representable as `Int64`, each monetary input and target profit is limited to ¥10,000,000 (1,000,000,000 fen), and each planned volume is limited to 1,000,000,000 units. `CvpCase::contribution_fen()` also returns `None` for invalid inputs.
 
 ## Compare a pricing change
 
@@ -40,6 +40,7 @@ Requires the MoonBit toolchain. The runnable pricing walkthrough compares a base
 moon fmt
 moon info
 moon check --target native
+moon test --target native
 moon run cmd/main --target js
 ```
 
@@ -53,7 +54,7 @@ Change: profit -350000 fen, break-even +93 units, safety margin -93 units
 
 The core is split between `domain/` (operating assumptions and their validity) and `engine/` (derived quantities and scenario comparisons). The examples are deliberately small enough to verify by hand.
 
-The GitHub Actions workflow checks formatting, generated package interfaces, native compilation, and the walkthrough. Mooncakes publishing has not been performed; see [`fieldbook/release-checklist.md`](fieldbook/release-checklist.md) before preparing a release.
+The GitHub Actions workflow checks formatting, generated package interfaces, native compilation, CVP boundary tests, and the walkthrough. Mooncakes publishing has not been performed; see [`fieldbook/release-checklist.md`](fieldbook/release-checklist.md) before preparing a release.
 
 ## License
 

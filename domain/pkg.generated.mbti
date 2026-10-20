@@ -2,6 +2,9 @@
 package "WmmmQa/tidemark/domain"
 
 // Values
+pub const MAX_SUPPORTED_AMOUNT_FEN : Int64 = 1_000_000_000
+
+pub const MAX_SUPPORTED_UNITS : Int64 = 1_000_000_000
 
 // Errors
 
@@ -10,6 +13,7 @@ pub(all) enum CaseIssue {
   NonPositiveSellingPrice
   NegativeVariableCost
   NegativeFixedCost
+  MonetaryAmountOutOfRange
   NoPositiveContribution
 }
 
@@ -18,7 +22,7 @@ pub(all) struct CvpCase {
   variable_cost_fen : Int64
   fixed_cost_fen : Int64
 }
-pub fn CvpCase::contribution_fen(Self) -> Int64
+pub fn CvpCase::contribution_fen(Self) -> Int64?
 pub fn CvpCase::issues(Self) -> Array[CaseIssue]
 
 pub(all) struct CvpScenario {

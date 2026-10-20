@@ -5,5 +5,8 @@ pub fn contribution_ratio_bps(case : @domain.CvpCase) -> Int64? {
   if case.issues().length() > 0 {
     return None
   }
-  Some(case.contribution_fen() * 10_000L / case.selling_price_fen)
+  match case.contribution_fen() {
+    Some(contribution) => Some(contribution * 10_000L / case.selling_price_fen)
+    None => None
+  }
 }

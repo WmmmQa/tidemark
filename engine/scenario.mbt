@@ -3,6 +3,7 @@
 pub(all) enum ScenarioIssue {
   InvalidCase(@domain.CaseIssue)
   NegativePlannedUnits
+  PlannedUnitsOutOfRange
 }
 
 ///|
@@ -25,6 +26,9 @@ pub fn evaluate_scenario(scenario : @domain.CvpScenario) -> ScenarioResult {
   }
   if scenario.planned_units < 0 {
     issues.push(NegativePlannedUnits)
+  }
+  if scenario.planned_units > @domain.MAX_SUPPORTED_UNITS {
+    issues.push(PlannedUnitsOutOfRange)
   }
   if issues.length() > 0 {
     return {
