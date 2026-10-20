@@ -31,6 +31,10 @@ jobs:
           moon fmt
           moon info
           git diff --exit-code
+          if [ -n "$(git status --porcelain)" ]; then
+            git status --short
+            exit 1
+          fi
 
       - name: Check native packages
         run: moon check --target native --deny-warn
