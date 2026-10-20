@@ -70,3 +70,19 @@ test "sensitivity differences preserve signs and invalid rows" {
   assert_eq(result.break_even_delta_units, Some(93L))
   assert_eq(result.safety_margin_delta_units, Some(-93L))
 }
+
+///|
+test "scenario reports unsupported planned volume" {
+  let scenario = @domain.CvpScenario::{
+    label: "Too large",
+    case: @domain.CvpCase::{
+      selling_price_fen: 8000L,
+      variable_cost_fen: 4800L,
+      fixed_cost_fen: 1600000L,
+    },
+    planned_units: @domain.MAX_SUPPORTED_UNITS + 1L,
+  }
+  let result = @engine.evaluate_scenario(scenario)
+  assert_eq(result.issues.length(), 1)
+  assert_eq(result.operating_profit_fen, None)
+}

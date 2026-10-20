@@ -1,4 +1,6 @@
 import {
+  "moonbitlang/core/env",
+  "moonbitlang/core/string",
   "WmmmQa/tidemark/domain",
   "WmmmQa/tidemark/engine",
 }

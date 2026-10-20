@@ -44,7 +44,24 @@ moon test --target native
 moon run cmd/main --target js
 ```
 
-The walkthrough uses ¥80/¥48/¥16,000 as its baseline and changes only the selling price to ¥75 in the promotion scenario. It reports 500 vs. 593 break-even units, 640,000 vs. 290,000 fen of operating profit, and the signed differences. The executable is in [`cmd/main/main.mbt`](cmd/main/main.mbt). The GitHub Actions workflow pins the MoonBit compiler and also runs the walkthrough on the native target.
+To compare your own baseline with an alternative, pass eight integer inputs in this order: baseline price (fen), baseline variable cost per unit (fen), baseline fixed cost (fen), baseline planned units, then the same four values for the alternative. Keep the other seven values unchanged when you want to isolate one driver.
+
+```sh
+moon run cmd/main --target js 8000 4800 1600000 700 7500 4800 1600000 700
+```
+
+This compares ¥80 / ¥48 / ¥16,000 at 700 units against ¥75 / ¥48 / ¥16,000 at 700 units. It reports operating profit, break-even units, safety margin, and the signed changes. Use fen for money inputs (for example, ¥80 is `8000`) and whole units for volume. With no arguments, the command runs the built-in example. Invalid integer syntax prints the input form; values outside the supported range or with no positive unit contribution have unavailable metrics and a specific correction message.
+
+For the built-in baseline of `8000 4800 1600000 700`, use these alternative inputs to explore common operating questions:
+
+| Decision question | Alternative price, unit variable cost, fixed cost, units |
+| --- | --- |
+| What if a promotion lowers the selling price? | `7500 4800 1600000 700` |
+| What if unit variable cost rises? | `8000 5200 1600000 700` |
+| What if rent or other fixed costs increase? | `8000 4800 1800000 700` |
+| What if planned volume falls? | `8000 4800 1600000 600` |
+
+The built-in walkthrough uses ¥80/¥48/¥16,000 as its baseline and changes only the selling price to ¥75 in the promotion scenario. It reports 500 vs. 593 break-even units, 640,000 vs. 290,000 fen of operating profit, and the signed differences. The executable is in [`cmd/main/main.mbt`](cmd/main/main.mbt). The GitHub Actions workflow pins the MoonBit compiler and runs both the built-in walkthrough and a custom-input scenario on the native target.
 
 ```text
 Baseline: break-even 500 units, operating profit 640000 fen, safety margin 200 units

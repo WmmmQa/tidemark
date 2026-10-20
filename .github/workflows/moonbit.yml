@@ -44,3 +44,17 @@ jobs:
 
       - name: Run pricing walkthrough
         run: moon run cmd/main --target native
+
+      - name: Run custom scenario walkthrough
+        shell: bash
+        run: |
+          result="$(moon run cmd/main --target native 8000 4800 1600000 700 7500 4800 1600000 700)"
+          printf '%s\n' "$result"
+          grep -Fq 'Operating profit change (fen): -350000' <<< "$result"
+
+      - name: Check invalid scenario guidance
+        shell: bash
+        run: |
+          result="$(moon run cmd/main --target native 8000 8000 1600000 700 7500 4800 1600000 700)"
+          printf '%s\n' "$result"
+          grep -Fq 'Selling price must exceed unit variable cost.' <<< "$result"
