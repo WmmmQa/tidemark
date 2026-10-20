@@ -1,0 +1,6 @@
+import {
+  "WmmmQa/tidemark/domain",
+  "WmmmQa/tidemark/engine",
+}
+
+pkgtype(kind: "executable")

@@ -34,13 +34,26 @@ The one-page scope, three intended usage scenarios, and boundary decisions are r
 
 ## Development
 
-Requires the MoonBit toolchain.
+Requires the MoonBit toolchain. The runnable pricing walkthrough compares a baseline with a promotion-price scenario and prints the signed changes.
 
 ```sh
+moon fmt
+moon info
 moon check --target native
+moon run cmd/main --target js
+```
+
+The walkthrough uses ¥80/¥48/¥16,000 as its baseline and changes only the selling price to ¥75 in the promotion scenario. It reports 500 vs. 593 break-even units, 640,000 vs. 290,000 fen of operating profit, and the signed differences. The executable is in [`cmd/main/main.mbt`](cmd/main/main.mbt). The GitHub Actions workflow pins the MoonBit compiler and also runs the walkthrough on the native target.
+
+```text
+Baseline: break-even 500 units, operating profit 640000 fen, safety margin 200 units
+Promotion price: break-even 593 units, operating profit 290000 fen, safety margin 107 units
+Change: profit -350000 fen, break-even +93 units, safety margin -93 units
 ```
 
 The core is split between `domain/` (operating assumptions and their validity) and `engine/` (derived quantities and scenario comparisons). The examples are deliberately small enough to verify by hand.
+
+The GitHub Actions workflow checks formatting, generated package interfaces, native compilation, and the walkthrough. Mooncakes publishing has not been performed; see [`fieldbook/release-checklist.md`](fieldbook/release-checklist.md) before preparing a release.
 
 ## License
 
