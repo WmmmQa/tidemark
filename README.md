@@ -16,6 +16,8 @@ Tidemark turns explicit operating assumptions into reproducible profit calculati
 
 Portfolio break-even uses a fixed sales mix within one period. Operating plans can use different products, quantities, prices and costs in each period. The model does not forecast demand, account for tax, handle inventory or capacity constraints, or decide whether a business plan is viable. Operating profit is not cash flow.
 
+To call these packages from a separate MoonBit project, follow the [local workspace integration guide](fieldbook/using-as-a-library.md). It includes module dependency configuration and a complete consumer importing all five packages. This source-based workflow is available before a Mooncakes release.
+
 ## Start with an editable JSON file
 
 Requires MoonBit and Node.js (CI uses Node 22). From the repository directory:
