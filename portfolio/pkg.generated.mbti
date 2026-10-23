@@ -1,0 +1,127 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "WmmmQa/tidemark/portfolio"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub const MAX_INPUT_AMOUNT_FEN : Int64 = 1_000_000_000
+
+pub const MAX_INPUT_QUANTITY : Int64 = 1_000_000_000
+
+pub fn compare_mixes(MixPlan, Int64, MixPlan, Int64) -> Result[MixComparison, MixError]
+
+pub fn describe_mix(MixPlan) -> Result[MixProfile, MixError]
+
+pub fn evaluate_mix(MixPlan, Int64) -> Result[MixEvaluation, MixError]
+
+pub fn mix_break_even(MixPlan) -> Result[MixTarget, MixError]
+
+pub fn mix_target(MixPlan, Int64) -> Result[MixTarget, MixError]
+
+// Errors
+
+// Types and methods
+pub(all) struct MixComparison {
+  baseline : MixEvaluation
+  alternative : MixEvaluation
+  revenue_delta_fen : Int64
+  variable_cost_delta_fen : Int64
+  fixed_cost_delta_fen : Int64
+  contribution_delta_fen : Int64
+  operating_profit_delta_fen : Int64
+} derive(Eq, @debug.Debug)
+pub fn MixComparison::equal(Self, Self) -> Bool
+pub fn MixComparison::not_equal(Self, Self) -> Bool
+pub fn MixComparison::to_repr(Self) -> @debug.Repr
+
+pub(all) enum MixError {
+  EmptyMix
+  InvalidProductId(Int)
+  DuplicateProductId(String)
+  PriceOutOfRange(String)
+  VariableCostOutOfRange(String)
+  WeightOutOfRange(String)
+  FixedCostOutOfRange
+  TargetProfitOutOfRange
+  PlannedBundlesOutOfRange
+  NonPositiveMixContribution
+  Overflow(String)
+} derive(Eq, @debug.Debug)
+pub fn MixError::equal(Self, Self) -> Bool
+pub fn MixError::not_equal(Self, Self) -> Bool
+pub fn MixError::to_repr(Self) -> @debug.Repr
+
+pub(all) struct MixEvaluation {
+  profile : MixProfile
+  planned_bundles : Int64
+  products : Array[ProductSales]
+  revenue_fen : Int64
+  variable_cost_fen : Int64
+  contribution_fen : Int64
+  operating_profit_fen : Int64
+} derive(Eq, @debug.Debug)
+pub fn MixEvaluation::equal(Self, Self) -> Bool
+pub fn MixEvaluation::not_equal(Self, Self) -> Bool
+pub fn MixEvaluation::to_repr(Self) -> @debug.Repr
+
+pub(all) struct MixItem {
+  product : Product
+  weight : Int64
+} derive(Eq, @debug.Debug)
+pub fn MixItem::equal(Self, Self) -> Bool
+pub fn MixItem::not_equal(Self, Self) -> Bool
+pub fn MixItem::to_repr(Self) -> @debug.Repr
+
+pub(all) struct MixPlan {
+  items : Array[MixItem]
+  fixed_cost_fen : Int64
+} derive(Eq, @debug.Debug)
+pub fn MixPlan::equal(Self, Self) -> Bool
+pub fn MixPlan::not_equal(Self, Self) -> Bool
+pub fn MixPlan::to_repr(Self) -> @debug.Repr
+
+pub(all) struct MixProfile {
+  items : Array[MixItem]
+  fixed_cost_fen : Int64
+  bundle_revenue_fen : Int64
+  bundle_variable_cost_fen : Int64
+  bundle_contribution_fen : Int64
+} derive(Eq, @debug.Debug)
+pub fn MixProfile::equal(Self, Self) -> Bool
+pub fn MixProfile::not_equal(Self, Self) -> Bool
+pub fn MixProfile::to_repr(Self) -> @debug.Repr
+
+pub(all) struct MixTarget {
+  target_profit_fen : Int64
+  required : MixEvaluation
+  rounding_surplus_fen : Int64
+} derive(Eq, @debug.Debug)
+pub fn MixTarget::equal(Self, Self) -> Bool
+pub fn MixTarget::not_equal(Self, Self) -> Bool
+pub fn MixTarget::to_repr(Self) -> @debug.Repr
+
+pub(all) struct Product {
+  id : String
+  selling_price_fen : Int64
+  variable_cost_fen : Int64
+} derive(Eq, @debug.Debug)
+pub fn Product::equal(Self, Self) -> Bool
+pub fn Product::not_equal(Self, Self) -> Bool
+pub fn Product::to_repr(Self) -> @debug.Repr
+
+pub(all) struct ProductSales {
+  product : Product
+  units : Int64
+  revenue_fen : Int64
+  variable_cost_fen : Int64
+  contribution_fen : Int64
+} derive(Eq, @debug.Debug)
+pub fn ProductSales::equal(Self, Self) -> Bool
+pub fn ProductSales::not_equal(Self, Self) -> Bool
+pub fn ProductSales::to_repr(Self) -> @debug.Repr
+
+// Type aliases
+
+// Traits

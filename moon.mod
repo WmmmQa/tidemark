@@ -11,7 +11,7 @@
 
 name = "WmmmQa/tidemark"
 
-version = "0.1.0"
+version = "0.2.0"
 
 readme = "README.md"
 
@@ -28,4 +28,4 @@ keywords = [
 
 preferred_target = "native"
 
-description = "A compact MoonBit engine for cost-volume-profit decisions and break-even analysis."
+description = "MoonBit cost-volume-profit and product-mix planning with checked integer arithmetic."

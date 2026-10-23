@@ -1,0 +1,6 @@
+import {
+  "WmmmQa/tidemark/portfolio",
+  "moonbitlang/core/debug",
+}
+
+pkgtype(kind: "executable")

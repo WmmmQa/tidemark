@@ -39,8 +39,17 @@ jobs:
       - name: Check native packages
         run: moon check --target native --deny-warn
 
-      - name: Run CVP boundary tests
+      - name: Run CVP and portfolio boundary tests
         run: moon test --target native --deny-warn
+
+      - name: Run portfolio import example
+        shell: bash
+        run: |
+          result="$(moon run cmd/mix --target native)"
+          printf '%s\n' "$result"
+          grep -Fq 'Break-even: 191 bundles' <<< "$result"
+          grep -Fq 'Target profit 800000 fen: 286 bundles' <<< "$result"
+          grep -Fq 'Operating profit change (fen): -300000' <<< "$result"
 
       - name: Run pricing walkthrough
         run: moon run cmd/main --target native

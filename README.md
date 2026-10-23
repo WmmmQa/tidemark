@@ -1,77 +1,131 @@
 # Tidemark
 
-**A small MoonBit engine for cost-volume-profit decisions.**
+**A MoonBit library for cost-volume-profit and product-mix decisions.**
 
-Tidemark turns a few operating assumptions into a transparent break-even calculation: selling price, variable cost per unit, and fixed operating cost. It is aimed at management accounting exercises and early-stage pricing decisions where people need to see how the result follows from the inputs.
+Tidemark turns explicit operating assumptions into reproducible profit calculations. It supports single-product CVP and multi-product sales mixes with shared fixed costs, whole-bundle target plans and product-level results. It is intended for management accounting tools, small-business planning and teaching applications built with MoonBit.
 
-## Current scope
+## Packages and current scope
 
-The model focuses on one product and one operating period. It provides the reusable calculation model, core break-even and target-profit quantities, named scenario comparison, and one-driver-at-a-time sensitivity analysis. Scenario results include break-even units, operating profit at planned volume, and safety margin.
+| Import | Reusable functionality |
+| --- | --- |
+| `WmmmQa/tidemark/domain` | Single-product assumptions, validation and unit contribution |
+| `WmmmQa/tidemark/engine` | Contribution ratio, break-even, target-profit volume/revenue, profit, safety margin, named scenarios and sensitivity |
+| `WmmmQa/tidemark/portfolio` | Normalized multi-product sales mixes, shared fixed costs, product quantities, whole-bundle targets and financial comparisons |
 
-Tidemark does not estimate demand, forecast sales, account for tax, or decide whether a business plan is viable. Results depend on the assumptions entered by the user.
+Each evaluation covers one operating period. Multi-period aggregation and budget-versus-actual attribution are not implemented yet. The model does not forecast demand, account for tax, handle inventory or capacity constraints, or decide whether a business plan is viable. Operating profit is not cash flow.
 
-## A quick example
+## Single-product pricing
 
-Suppose a shop sells an item for ¥80, has ¥48 of variable cost per item, and incurs ¥16,000 of fixed cost for the period:
+At a selling price of ¥80, unit variable cost of ¥48 and fixed operating cost of ¥16,000, contribution is ¥32 per item. Break-even is 500 whole units; an ¥8,000 profit target requires 750 units and ¥60,000 revenue.
 
-- Contribution per item: ¥80 − ¥48 = ¥32
-- Break-even quantity: ¥16,000 ÷ ¥32 = 500 items
-- For a target operating profit of ¥8,000: (¥16,000 + ¥8,000) ÷ ¥32 = 750 items
+At 700 planned units the profit is ¥6,400 and safety margin 200 units. Lowering only the price to ¥75 yields ¥2,900 profit, break-even 593 units and safety margin 107 units. The sensitivity result reports changes of −¥3,500 profit, +93 break-even units and −93 safety-margin units.
 
-All money values in the calculation API use integer fen. The equations use whole units and round required quantities up, so a target is not understated by a fractional unit.
+Run the built-in example or pass your own eight integers:
 
-The public calculation surface currently covers input diagnostics, unit contribution, contribution margin in basis points, break-even units, target-profit units and revenue, operating profit, and safety margin. Invalid cases return `None` from derived calculations; `CvpCase::issues()` reports the input reasons. To keep every intermediate result representable as `Int64`, each monetary input and target profit is limited to ¥10,000,000 (1,000,000,000 fen), and each planned volume is limited to 1,000,000,000 units. `CvpCase::contribution_fen()` also returns `None` for invalid inputs.
+```sh
+moon run cmd/main --target js
+moon run cmd/main --target js 8000 4800 1600000 700 7500 4800 1600000 700
+```
 
-## Compare a pricing change
+Input order: baseline selling price, unit variable cost, fixed cost, planned units; then the same four alternative inputs. Money is **integer fen** (¥80 = `8000`), volume is whole units. With no arguments the command uses the example above. Invalid integer syntax prints usage; invalid financial assumptions produce correction messages and unavailable metrics.
 
-At 700 planned units, a baseline assumption of ¥80 selling price, ¥48 variable cost, and ¥16,000 fixed cost produces ¥6,400 operating profit, a 500-unit break-even point, and 200 units of safety margin. Reducing price to ¥75 while keeping the other assumptions unchanged produces ¥2,900 profit, a 593-unit break-even point, and 107 units of safety margin. The sensitivity result reports the changes from baseline: −¥3,500 profit, +93 break-even units, and −93 safety-margin units.
+For the built-in baseline, try these alternatives:
 
-Use `compare_scenarios` to evaluate several named assumption sets side by side. Use `sensitivity_analysis` to compare a baseline with alternatives; change one input driver per alternative so the effect remains interpretable. Invalid scenarios remain in the result list with their issue reasons and no derived metrics, so one bad row does not hide the others. Multi-product sales mix, demand forecasting, tax, and accounting-standard judgments remain outside the model.
+| Question | Alternative price, variable cost, fixed cost, units |
+| --- | --- |
+| Lower selling price | `7500 4800 1600000 700` |
+| Higher unit variable cost | `8000 5200 1600000 700` |
+| Higher rent/fixed cost | `8000 4800 1800000 700` |
+| Lower planned volume | `8000 4800 1600000 600` |
 
-## Project proposal
+The single-product API is unchanged. `CvpCase::issues()` reports input problems; derived calculations return `None` for invalid inputs. `compare_scenarios` preserves invalid rows with their issues. `sensitivity_analysis` reports signed changes; change one driver at a time when interpreting an individual effect. Single-product ordinary CVP requires a positive unit contribution.
 
-The one-page scope, three intended usage scenarios, and boundary decisions are recorded in [`fieldbook/project-brief.md`](fieldbook/project-brief.md).
+## Multi-product sales mixes
 
-## Development
+Add the portfolio import to your package's `moon.pkg`:
 
-Requires the MoonBit toolchain. The runnable pricing walkthrough compares a baseline with a promotion-price scenario and prints the signed changes.
+```text
+import {
+  "WmmmQa/tidemark/portfolio",
+}
+```
+
+Construct a plan and handle the typed `Result`:
+
+```moonbit
+let plan : @portfolio.MixPlan = {
+  items: [
+    {
+      product: { id: "meal", selling_price_fen: 8000L, variable_cost_fen: 4800L },
+      weight: 2L,
+    },
+    {
+      product: { id: "drink", selling_price_fen: 5000L, variable_cost_fen: 3000L },
+      weight: 1L,
+    },
+  ],
+  fixed_cost_fen: 1600000L,
+}
+match @portfolio.mix_target(plan, 800000L) {
+  Ok(target) => println(target.required.revenue_fen)
+  Err(_) => println("Check product inputs, contribution and numeric range.")
+}
+```
+
+One normalized bundle contains two meals and one drink. Revenue is 21,000 fen, variable cost 12,600 fen and contribution 8,400 fen. Contributions are summed by product quantities; individual margin percentages are not simply averaged.
+
+| Question | API | Result for this plan |
+| --- | --- | --- |
+| What is one bundle? | `describe_mix(plan)` | Weights 2:1; contribution 8,400 fen |
+| What happens at 250 bundles? | `evaluate_mix(plan, 250L)` | 500 meals, 250 drinks; profit 500,000 fen |
+| What covers shared fixed costs? | `mix_break_even(plan)` | 191 bundles: 382 meals, 191 drinks; revenue 4,011,000 fen |
+| What reaches 800,000 fen profit? | `mix_target(plan, 800000L)` | 286 bundles: 572 meals, 286 drinks; revenue 6,006,000 fen; profit 802,400 fen |
+| What if the mix becomes 1:2? | `compare_mixes(plan, 250L, alternative, 250L)` | Profit falls by 300,000 fen; product quantities differ |
+
+Break-even rounds up to a **complete bundle**: 190 bundles still lose 4,000 fen, while 191 earn 4,400 fen. Target results include the rounding surplus. Weights are divided by their greatest common divisor, so 4:2 and 2:1 give identical bundle definitions and results. Planned volume is in **normalized bundles**, not bundles of the original unnormalized ratio.
+
+Run the complete example, a separate package importing the portfolio API:
+
+```sh
+moon run cmd/mix --target js
+```
+
+### Assumptions and validation
+
+- Product IDs are unique, case-sensitive, nonblank and have no leading/trailing whitespace. Each product has its own whole-unit quantity. The ratio is an assumed sales composition, not an inventory recipe or demand forecast.
+- Price must be positive, unit variable cost and shared fixed cost nonnegative. A product may have zero or negative contribution; the combined bundle must contribute positively. Shared fixed cost is deducted once, without inventing an allocation of fixed costs to products.
+- All products and costs use one currency, cost basis and period. Price and variable cost per unit stay constant over the modeled range. All products must sell in the specified mix; whole-bundle targets can be conservative when arbitrary quantities are feasible.
+- `MixError` distinguishes empty mixes, invalid/duplicate IDs, price/cost/weight/fixed-cost/target/volume bounds, nonpositive bundle contribution and arithmetic overflow. The first detected error is returned; there is no partial numeric result. Error types and fields are in [`portfolio/model.mbt`](portfolio/model.mbt) and the generated package interface.
+- `compare_mixes` returns alternative-minus-baseline financial changes and both product breakdowns. Different bundles are not a common physical unit; the API deliberately does not subtract bundle counts or imply equal bundle counts mean equal volume.
+
+### Numeric limits
+
+All calculation APIs use signed `Int64` integer fen and whole quantities, with upward rounding for required sales.
+
+| Input | Single product | Portfolio |
+| --- | --- | --- |
+| Each price/cost/fixed cost and target profit | At most 1,000,000,000 fen (¥10,000,000) | Same |
+| Planned input | 0–1,000,000,000 units | 0–1,000,000,000 normalized bundles |
+| Raw mix weight | Not applicable | 1–1,000,000,000; normalized by GCD |
+
+Derived quantities and monetary totals may exceed these input limits but must fit signed `Int64`. Portfolio additions, volume multiplications and signed comparisons are checked; an unrepresentable result returns `Err(Overflow(context))`. Valid individual rows do not guarantee a representable portfolio total. Target-derived bundle counts may exceed the planned-input limit. The original single-product bounds keep its intermediates representable; invalid inputs return `None`.
+
+## Development and verification
+
+Requires the MoonBit toolchain. CI pins compiler `0.10.15+943464bfa`.
 
 ```sh
 moon fmt
 moon info
-moon check --target native
-moon test --target native
+moon check --target native --deny-warn
+moon test --target native --deny-warn
 moon run cmd/main --target js
+moon run cmd/mix --target js
 ```
 
-To compare your own baseline with an alternative, pass eight integer inputs in this order: baseline price (fen), baseline variable cost per unit (fen), baseline fixed cost (fen), baseline planned units, then the same four values for the alternative. Keep the other seven values unchanged when you want to isolate one driver.
+On Windows without MSVC, use `moon test --target js`; native execution requires a C toolchain. GitHub Actions on Ubuntu checks formatting and generated interfaces, native compilation, tests, built-in/custom single-product inputs and the portfolio example. Tests cover equivalent ratios, target minimality, loss-leading products, invalid rows, aggregate overflow, signed arithmetic boundaries and compatibility with the single-product API.
 
-```sh
-moon run cmd/main --target js 8000 4800 1600000 700 7500 4800 1600000 700
-```
-
-This compares ¥80 / ¥48 / ¥16,000 at 700 units against ¥75 / ¥48 / ¥16,000 at 700 units. It reports operating profit, break-even units, safety margin, and the signed changes. Use fen for money inputs (for example, ¥80 is `8000`) and whole units for volume. With no arguments, the command runs the built-in example. Invalid integer syntax prints the input form; values outside the supported range or with no positive unit contribution have unavailable metrics and a specific correction message.
-
-For the built-in baseline of `8000 4800 1600000 700`, use these alternative inputs to explore common operating questions:
-
-| Decision question | Alternative price, unit variable cost, fixed cost, units |
-| --- | --- |
-| What if a promotion lowers the selling price? | `7500 4800 1600000 700` |
-| What if unit variable cost rises? | `8000 5200 1600000 700` |
-| What if rent or other fixed costs increase? | `8000 4800 1800000 700` |
-| What if planned volume falls? | `8000 4800 1600000 600` |
-
-The built-in walkthrough uses ¥80/¥48/¥16,000 as its baseline and changes only the selling price to ¥75 in the promotion scenario. It reports 500 vs. 593 break-even units, 640,000 vs. 290,000 fen of operating profit, and the signed differences. The executable is in [`cmd/main/main.mbt`](cmd/main/main.mbt). The GitHub Actions workflow pins the MoonBit compiler and runs both the built-in walkthrough and a custom-input scenario on the native target.
-
-```text
-Baseline: break-even 500 units, operating profit 640000 fen, safety margin 200 units
-Promotion price: break-even 593 units, operating profit 290000 fen, safety margin 107 units
-Change: profit -350000 fen, break-even +93 units, safety margin -93 units
-```
-
-The core is split between `domain/` (operating assumptions and their validity) and `engine/` (derived quantities and scenario comparisons). The examples are deliberately small enough to verify by hand.
-
-The GitHub Actions workflow checks formatting, generated package interfaces, native compilation, CVP boundary tests, and the walkthrough. Mooncakes publishing has not been performed; see [`fieldbook/release-checklist.md`](fieldbook/release-checklist.md) before preparing a release.
+The commands consume the libraries; business calculations live in `domain/`, `engine/` and `portfolio/`. Three complete usage scenarios and design choices are in [`fieldbook/project-brief.md`](fieldbook/project-brief.md). Mooncakes publishing has not been performed; see [`fieldbook/release-checklist.md`](fieldbook/release-checklist.md) when preparing a release.
 
 ## License
 
