@@ -39,8 +39,16 @@ jobs:
       - name: Check native packages
         run: moon check --target native --deny-warn
 
-      - name: Run CVP and portfolio boundary tests
+      - name: Run calculation and JSON boundary tests
         run: moon test --target native --deny-warn
+
+      - name: Check JS package execution
+        run: moon test --target js --deny-warn
+
+      - name: Check structured file workflows on native and JS
+        run: |
+          node scripts/check-examples.mjs native
+          node scripts/check-examples.mjs js
 
       - name: Run portfolio import example
         shell: bash

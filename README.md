@@ -1,8 +1,8 @@
 # Tidemark
 
-**A MoonBit library for cost-volume-profit and product-mix decisions.**
+**A MoonBit library for product-mix planning and budget-to-actual profit analysis.**
 
-Tidemark turns explicit operating assumptions into reproducible profit calculations. It supports single-product CVP and multi-product sales mixes with shared fixed costs, whole-bundle target plans and product-level results. It is intended for management accounting tools, small-business planning and teaching applications built with MoonBit.
+Tidemark turns explicit operating assumptions into reproducible profit calculations. It supports single-product CVP, multi-product sales mixes, multi-period operating plans, and an exact budget-to-actual profit bridge. It is intended for management accounting tools, small-business planning and teaching applications built with MoonBit. The calculation libraries run independently of the command-line interface.
 
 ## Packages and current scope
 
@@ -11,8 +11,30 @@ Tidemark turns explicit operating assumptions into reproducible profit calculati
 | `WmmmQa/tidemark/domain` | Single-product assumptions, validation and unit contribution |
 | `WmmmQa/tidemark/engine` | Contribution ratio, break-even, target-profit volume/revenue, profit, safety margin, named scenarios and sensitivity |
 | `WmmmQa/tidemark/portfolio` | Normalized multi-product sales mixes, shared fixed costs, product quantities, whole-bundle targets and financial comparisons |
+| `WmmmQa/tidemark/planning` | Multi-period product sales, cumulative amounts, target gaps and ID-aligned budget/actual profit decomposition |
+| `WmmmQa/tidemark/interchange` | Reusable versioned JSON decoding, analysis dispatch and precision-preserving results |
 
-Each evaluation covers one operating period. Multi-period aggregation and budget-versus-actual attribution are not implemented yet. The model does not forecast demand, account for tax, handle inventory or capacity constraints, or decide whether a business plan is viable. Operating profit is not cash flow.
+Portfolio break-even uses a fixed sales mix within one period. Operating plans can use different products, quantities, prices and costs in each period. The model does not forecast demand, account for tax, handle inventory or capacity constraints, or decide whether a business plan is viable. Operating profit is not cash flow.
+
+## Start with an editable JSON file
+
+Requires MoonBit and Node.js (CI uses Node 22). From the repository directory:
+
+```sh
+node scripts/analyze.mjs examples/product-mix.json
+node scripts/analyze.mjs examples/operating-plan.json
+node scripts/analyze.mjs examples/budget-actual.json
+```
+
+Copy an example, edit the decimal strings and rerun the command. Money uses integer **fen** (¥80 = `"8000"`); quantities use whole units. The wrapper loads the file and passes it to the MoonBit CLI. All business calculations, schema decoding and financial result construction are MoonBit code. The result on stdout is one JSON document, suitable for another program to consume. Amounts and quantities remain strings even when results exceed JavaScript's exact integer range.
+
+| File | Reproducible result |
+| --- | --- |
+| `product-mix.json` | 2:1 mix; break-even 191 normalized bundles; ¥8,000 target requires 286 bundles |
+| `operating-plan.json` | October profit ¥5,000; November loss ¥1,000; total profit ¥4,000 and target gap ¥8,000 |
+| `budget-actual.json` | Two-period budget profit ¥14,200 versus actual ¥4,660; difference −¥9,540 |
+
+These are separate hypothetical operating scenarios. Input fields, output structure, integer limits and errors are specified in [`fieldbook/json-interface.md`](fieldbook/json-interface.md); [`schema/request.schema.json`](schema/request.schema.json) supports editor validation. Native execution is available with `--target native` when a C toolchain is installed. The default target is JS.
 
 ## Single-product pricing
 
@@ -110,6 +132,52 @@ All calculation APIs use signed `Int64` integer fen and whole quantities, with u
 
 Derived quantities and monetary totals may exceed these input limits but must fit signed `Int64`. Portfolio additions, volume multiplications and signed comparisons are checked; an unrepresentable result returns `Err(Overflow(context))`. Valid individual rows do not guarantee a representable portfolio total. Target-derived bundle counts may exceed the planned-input limit. The original single-product bounds keep its intermediates representable; invalid inputs return `None`.
 
+## Multi-period plans and budget execution
+
+Import `WmmmQa/tidemark/planning` for pure typed APIs:
+
+- `evaluate_period(PeriodPlan)` returns product detail, period amounts and a signed target gap.
+- `evaluate_plan(Array[PeriodPlan])` returns period results, cumulative amounts after each period and totals. Array order defines chronology; IDs are opaque labels, not parsed calendar dates.
+- `compare_plans(budget, actual)` aligns periods and products by ID and returns product-contribution effects and period/whole-plan profit effects. Actual periods and cumulative totals follow budget chronology, even if actual input rows arrive in another order. Product effect rows follow budget order; product detail retains each side's input order, so consumers should join by ID.
+
+After adding the planning import to `moon.pkg`, this complete `main.mbt` example prints a target gap of `160000` fen:
+
+```moonbit
+fn main {
+  let period : @planning.PeriodPlan = {
+    id: "October",
+    products: [{
+      product: { id: "meal", selling_price_fen: 8000L, variable_cost_fen: 4800L },
+      units: 700L,
+    }],
+    fixed_cost_fen: 1600000L,
+    target_profit_fen: 800000L,
+  }
+  match @planning.evaluate_plan([period]) {
+    Ok(result) => println(result.totals.target_gap_fen)
+    Err(_) => println("Check period inputs and numeric bounds.")
+  }
+}
+```
+
+`PeriodPlan` contains `id`, product/quantity rows, shared fixed cost and target profit. Every period and product list must be nonempty, with unique, already-trimmed, nonblank IDs. Products can change between periods, but budget and actual must have exactly matching product sets within each matched period and exactly matching period sets. A new or discontinued product must be explicitly represented on both sides, using zero quantity where appropriate and documented price/cost assumptions; the library never invents those observations.
+
+Unlike break-even analysis, operating records allow zero selling price, zero volume and nonpositive product or period contribution. Every price, cost, fixed-cost and target input is from 0 to 1,000,000,000 fen; each product's period quantity is from 0 to 1,000,000,000 units. Currency, cost basis and each product's unit must be consistent across compared periods. `target_gap_fen = target_profit_fen - operating_profit_fen`: positive is an unmet target, negative is an excess. Cumulative fields are sums of operating amounts; break-even quantities for different mixes are not summed.
+
+The bridge replaces product quantities, then selling prices, then unit variable costs, then shared fixed cost. With B = budget and A = actual:
+
+```text
+volume effect   = sum((A.units - B.units) * (B.price - B.variable_cost))
+price effect    = sum((A.price - B.price) * A.units)
+variable effect = sum((B.variable_cost - A.variable_cost) * A.units)
+fixed effect    = B.fixed_cost - A.fixed_cost
+sum of effects  = A.operating_profit - B.operating_profit
+```
+
+Positive effects improve actual profit relative to budget. Product-volume effects include sales composition changes; this is not a separate pure total-volume versus mix decomposition. The substitution order allocates interaction effects and is an accounting explanation, not causal evidence. Every signed intermediate, cumulative total and reconciliation is checked; an unrepresentable intermediate returns a typed `PlanError`, even if later cancellation could make a final number fit.
+
+For `budget-actual.json`, total effects are −116,000 fen for product quantities, −304,000 for selling prices, −284,000 for unit variable costs and −250,000 for fixed costs. Their sum is −954,000 fen, exactly 466,000 actual profit minus 1,420,000 budget profit. The example deliberately reverses actual period/product row order to exercise ID alignment.
+
 ## Development and verification
 
 Requires the MoonBit toolchain. CI pins compiler `0.10.15+943464bfa`.
@@ -121,11 +189,12 @@ moon check --target native --deny-warn
 moon test --target native --deny-warn
 moon run cmd/main --target js
 moon run cmd/mix --target js
+node scripts/check-examples.mjs js
 ```
 
-On Windows without MSVC, use `moon test --target js`; native execution requires a C toolchain. GitHub Actions on Ubuntu checks formatting and generated interfaces, native compilation, tests, built-in/custom single-product inputs and the portfolio example. Tests cover equivalent ratios, target minimality, loss-leading products, invalid rows, aggregate overflow, signed arithmetic boundaries and compatibility with the single-product API.
+On Windows without MSVC, use `moon test --target js`; native execution requires a C toolchain. GitHub Actions on Ubuntu checks formatting and generated interfaces, native compilation, tests, the original walkthroughs and the structured file workflow on native and JS targets. Tests cover ratio equivalence, target minimality, loss periods, cumulative reconciliation, ID mismatches, all variance drivers, signed overflow, JSON precision/schema errors and compatibility with the single-product API. The example checker also verifies real CLI output, error exit codes and profit bridges using `BigInt`.
 
-The commands consume the libraries; business calculations live in `domain/`, `engine/` and `portfolio/`. Three complete usage scenarios and design choices are in [`fieldbook/project-brief.md`](fieldbook/project-brief.md). Mooncakes publishing has not been performed; see [`fieldbook/release-checklist.md`](fieldbook/release-checklist.md) when preparing a release.
+The commands consume the libraries; calculation code lives in `domain/`, `engine/`, `portfolio/` and `planning/`, with JSON handling in `interchange/`. Three complete usage scenarios and design choices are in [`fieldbook/project-brief.md`](fieldbook/project-brief.md). Mooncakes publishing has not been performed; see [`fieldbook/release-checklist.md`](fieldbook/release-checklist.md) when preparing a release.
 
 ## License
 

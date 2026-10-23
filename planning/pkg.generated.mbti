@@ -1,0 +1,147 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "WmmmQa/tidemark/planning"
+
+import {
+  "WmmmQa/tidemark/portfolio",
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn compare_plans(Array[PeriodPlan], Array[PeriodPlan]) -> Result[PlanComparison, PlanError]
+
+pub fn evaluate_period(PeriodPlan) -> Result[PeriodResult, PlanError]
+
+pub fn evaluate_plan(Array[PeriodPlan]) -> Result[PlanResult, PlanError]
+
+// Errors
+
+// Types and methods
+pub(all) struct PeriodCumulative {
+  id : String
+  totals : PlanTotals
+} derive(Eq, @debug.Debug)
+pub fn PeriodCumulative::equal(Self, Self) -> Bool
+pub fn PeriodCumulative::not_equal(Self, Self) -> Bool
+pub fn PeriodCumulative::to_repr(Self) -> @debug.Repr
+
+pub(all) struct PeriodPlan {
+  id : String
+  products : Array[SalesLine]
+  fixed_cost_fen : Int64
+  target_profit_fen : Int64
+} derive(Eq, @debug.Debug)
+pub fn PeriodPlan::equal(Self, Self) -> Bool
+pub fn PeriodPlan::not_equal(Self, Self) -> Bool
+pub fn PeriodPlan::to_repr(Self) -> @debug.Repr
+
+pub(all) struct PeriodResult {
+  id : String
+  products : Array[@portfolio.ProductSales]
+  fixed_cost_fen : Int64
+  target_profit_fen : Int64
+  revenue_fen : Int64
+  variable_cost_fen : Int64
+  contribution_fen : Int64
+  operating_profit_fen : Int64
+  target_gap_fen : Int64
+} derive(Eq, @debug.Debug)
+pub fn PeriodResult::equal(Self, Self) -> Bool
+pub fn PeriodResult::not_equal(Self, Self) -> Bool
+pub fn PeriodResult::to_repr(Self) -> @debug.Repr
+
+pub(all) struct PeriodVariance {
+  id : String
+  budget : PeriodResult
+  actual : PeriodResult
+  products : Array[ProductVariance]
+  volume_effect_fen : Int64
+  price_effect_fen : Int64
+  variable_cost_effect_fen : Int64
+  fixed_cost_effect_fen : Int64
+  profit_delta_fen : Int64
+} derive(Eq, @debug.Debug)
+pub fn PeriodVariance::equal(Self, Self) -> Bool
+pub fn PeriodVariance::not_equal(Self, Self) -> Bool
+pub fn PeriodVariance::to_repr(Self) -> @debug.Repr
+
+pub(all) struct PlanComparison {
+  budget : PlanResult
+  actual : PlanResult
+  periods : Array[PeriodVariance]
+  volume_effect_fen : Int64
+  price_effect_fen : Int64
+  variable_cost_effect_fen : Int64
+  fixed_cost_effect_fen : Int64
+  profit_delta_fen : Int64
+} derive(Eq, @debug.Debug)
+pub fn PlanComparison::equal(Self, Self) -> Bool
+pub fn PlanComparison::not_equal(Self, Self) -> Bool
+pub fn PlanComparison::to_repr(Self) -> @debug.Repr
+
+pub(all) enum PlanError {
+  EmptyPlan
+  InvalidPeriodId(Int)
+  DuplicatePeriodId(String)
+  EmptyProducts(String)
+  InvalidProductId(String, Int)
+  DuplicateProductId(String, String)
+  PriceOutOfRange(String, String)
+  VariableCostOutOfRange(String, String)
+  UnitsOutOfRange(String, String)
+  FixedCostOutOfRange(String)
+  TargetProfitOutOfRange(String)
+  MissingPeriod(String)
+  UnexpectedPeriod(String)
+  MissingProduct(String, String)
+  UnexpectedProduct(String, String)
+  Overflow(String)
+  ReconciliationFailed(String)
+} derive(Eq, @debug.Debug)
+pub fn PlanError::equal(Self, Self) -> Bool
+pub fn PlanError::not_equal(Self, Self) -> Bool
+pub fn PlanError::to_repr(Self) -> @debug.Repr
+
+pub(all) struct PlanResult {
+  periods : Array[PeriodResult]
+  cumulative : Array[PeriodCumulative]
+  totals : PlanTotals
+} derive(Eq, @debug.Debug)
+pub fn PlanResult::equal(Self, Self) -> Bool
+pub fn PlanResult::not_equal(Self, Self) -> Bool
+pub fn PlanResult::to_repr(Self) -> @debug.Repr
+
+pub(all) struct PlanTotals {
+  fixed_cost_fen : Int64
+  target_profit_fen : Int64
+  revenue_fen : Int64
+  variable_cost_fen : Int64
+  contribution_fen : Int64
+  operating_profit_fen : Int64
+  target_gap_fen : Int64
+} derive(Eq, @debug.Debug)
+pub fn PlanTotals::equal(Self, Self) -> Bool
+pub fn PlanTotals::not_equal(Self, Self) -> Bool
+pub fn PlanTotals::to_repr(Self) -> @debug.Repr
+
+pub(all) struct ProductVariance {
+  product_id : String
+  volume_effect_fen : Int64
+  price_effect_fen : Int64
+  variable_cost_effect_fen : Int64
+  profit_delta_fen : Int64
+} derive(Eq, @debug.Debug)
+pub fn ProductVariance::equal(Self, Self) -> Bool
+pub fn ProductVariance::not_equal(Self, Self) -> Bool
+pub fn ProductVariance::to_repr(Self) -> @debug.Repr
+
+pub(all) struct SalesLine {
+  product : @portfolio.Product
+  units : Int64
+} derive(Eq, @debug.Debug)
+pub fn SalesLine::equal(Self, Self) -> Bool
+pub fn SalesLine::not_equal(Self, Self) -> Bool
+pub fn SalesLine::to_repr(Self) -> @debug.Repr
+
+// Type aliases
+
+// Traits

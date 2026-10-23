@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Tidemark analysis request v1",
+  "description": "Structural validation and input bounds. MoonBit additionally checks IDs, pair sets, positive mix contribution and arithmetic. JSON text transport is limited to 16000 UTF-16 code units.",
+  "oneOf": [
+    { "$ref": "#/$defs/PlanRequest" },
+    { "$ref": "#/$defs/ComparisonRequest" },
+    { "$ref": "#/$defs/MixRequest" }
+  ],
+  "$defs": {
+    "Amount": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,8}|1000000000)$",
+      "not": { "pattern": "[^0-9]" },
+      "description": "Canonical nonnegative decimal integer, at most 1000000000. Money is fen; quantities are whole units."
+    },
+    "Positive": {
+      "type": "string",
+      "pattern": "^([1-9][0-9]{0,8}|1000000000)$",
+      "not": { "pattern": "[^0-9]" }
+    },
+    "Id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Nonblank, already trimmed and case-sensitive. Uniqueness and whitespace checks are performed by MoonBit."
+    },
+    "Product": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "selling_price_fen", "variable_cost_fen"],
+      "properties": {
+        "id": { "$ref": "#/$defs/Id" },
+        "selling_price_fen": { "$ref": "#/$defs/Amount" },
+        "variable_cost_fen": { "$ref": "#/$defs/Amount" }
+      }
+    },
+    "SalesLine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["product", "units"],
+      "properties": {
+        "product": { "$ref": "#/$defs/Product" },
+        "units": { "$ref": "#/$defs/Amount" }
+      }
+    },
+    "Period": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "products", "fixed_cost_fen", "target_profit_fen"],
+      "properties": {
+        "id": { "$ref": "#/$defs/Id" },
+        "products": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/SalesLine" } },
+        "fixed_cost_fen": { "$ref": "#/$defs/Amount" },
+        "target_profit_fen": { "$ref": "#/$defs/Amount" }
+      }
+    },
+    "Periods": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/Period" }
+    },
+    "PlanRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "kind", "periods"],
+      "properties": {
+        "schema_version": { "const": 1 },
+        "kind": { "const": "plan" },
+        "periods": { "$ref": "#/$defs/Periods" }
+      }
+    },
+    "ComparisonRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "kind", "budget", "actual"],
+      "properties": {
+        "schema_version": { "const": 1 },
+        "kind": { "const": "comparison" },
+        "budget": { "$ref": "#/$defs/Periods" },
+        "actual": { "$ref": "#/$defs/Periods" }
+      }
+    },
+    "MixItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["product", "weight"],
+      "properties": {
+        "product": {
+          "allOf": [
+            { "$ref": "#/$defs/Product" },
+            { "properties": { "selling_price_fen": { "$ref": "#/$defs/Positive" } } }
+          ]
+        },
+        "weight": { "$ref": "#/$defs/Positive" }
+      }
+    },
+    "MixRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "kind", "items", "fixed_cost_fen", "planned_bundles", "target_profit_fen"],
+      "properties": {
+        "schema_version": { "const": 1 },
+        "kind": { "const": "mix" },
+        "items": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/MixItem" } },
+        "fixed_cost_fen": { "$ref": "#/$defs/Amount" },
+        "planned_bundles": { "$ref": "#/$defs/Amount" },
+        "target_profit_fen": { "$ref": "#/$defs/Amount" }
+      }
+    }
+  }
+}

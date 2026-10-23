@@ -1,0 +1,44 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "WmmmQa/tidemark/interchange"
+
+import {
+  "WmmmQa/tidemark/planning",
+  "WmmmQa/tidemark/portfolio",
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub const MAX_INPUT_CODE_UNITS : Int = 16000
+
+pub fn error_response(String, String) -> Json
+
+pub fn execute_request(Request) -> Json
+
+pub fn parse_request(String) -> Result[Request, DecodeError]
+
+pub fn run_json(String) -> Json
+
+// Errors
+
+// Types and methods
+pub(all) enum DecodeError {
+  InputTooLarge(Int)
+  InvalidJson(String)
+  InvalidField(String, String)
+} derive(Eq, @debug.Debug)
+pub fn DecodeError::equal(Self, Self) -> Bool
+pub fn DecodeError::not_equal(Self, Self) -> Bool
+pub fn DecodeError::to_repr(Self) -> @debug.Repr
+
+pub(all) enum Request {
+  Plan(Array[@planning.PeriodPlan])
+  Comparison(Array[@planning.PeriodPlan], Array[@planning.PeriodPlan])
+  Mix(@portfolio.MixPlan, Int64, Int64)
+} derive(Eq, @debug.Debug)
+pub fn Request::equal(Self, Self) -> Bool
+pub fn Request::not_equal(Self, Self) -> Bool
+pub fn Request::to_repr(Self) -> @debug.Repr
+
+// Type aliases
+
+// Traits

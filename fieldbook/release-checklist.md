@@ -6,7 +6,7 @@
 
 - [ ] 确认 `moon.mod` 的模块名、仓库地址、许可证和说明与 GitHub 仓库一致。
 - [ ] 按语义化版本规则更新 `moon.mod`：增加向后兼容功能时提升次版本；破坏公开 API 时提升主版本。
-- [ ] 在干净工作区运行 `moon fmt`、`moon info`、`moon check --target native` 和 `moon run cmd/main --target js`。
+- [ ] 在干净工作区运行 `moon fmt`、`moon info`、`moon check --target native --deny-warn`、`moon test --target native --deny-warn`、`moon test --target js --deny-warn` 及 `node scripts/check-examples.mjs native` / `js`，并核对原有两个演示。
 - [ ] 检查生成的 `pkg.generated.mbti` 与当前公开 API 一致，并审阅 README 和本清单中的范围边界。
 - [ ] 在 Mooncakes 账号上完成注册或登录，并确认账号有权代表模块所有者发布。
 

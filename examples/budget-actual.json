@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "kind": "comparison",
+  "budget": [
+    {
+      "id": "2026-10",
+      "products": [
+        { "product": { "id": "meal", "selling_price_fen": "8000", "variable_cost_fen": "4800" }, "units": "500" },
+        { "product": { "id": "drink", "selling_price_fen": "5000", "variable_cost_fen": "3000" }, "units": "250" }
+      ],
+      "fixed_cost_fen": "1600000",
+      "target_profit_fen": "800000"
+    },
+    {
+      "id": "2026-11",
+      "products": [
+        { "product": { "id": "meal", "selling_price_fen": "8000", "variable_cost_fen": "4800" }, "units": "600" },
+        { "product": { "id": "drink", "selling_price_fen": "5000", "variable_cost_fen": "3000" }, "units": "300" }
+      ],
+      "fixed_cost_fen": "1600000",
+      "target_profit_fen": "800000"
+    }
+  ],
+  "actual": [
+    {
+      "id": "2026-11",
+      "products": [
+        { "product": { "id": "drink", "selling_price_fen": "5000", "variable_cost_fen": "3200" }, "units": "500" },
+        { "product": { "id": "meal", "selling_price_fen": "7500", "variable_cost_fen": "5000" }, "units": "400" }
+      ],
+      "fixed_cost_fen": "1800000",
+      "target_profit_fen": "800000"
+    },
+    {
+      "id": "2026-10",
+      "products": [
+        { "product": { "id": "drink", "selling_price_fen": "5000", "variable_cost_fen": "3000" }, "units": "280" },
+        { "product": { "id": "meal", "selling_price_fen": "7800", "variable_cost_fen": "5000" }, "units": "520" }
+      ],
+      "fixed_cost_fen": "1650000",
+      "target_profit_fen": "800000"
+    }
+  ]
+}

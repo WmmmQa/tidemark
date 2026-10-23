@@ -11,7 +11,7 @@
 
 name = "WmmmQa/tidemark"
 
-version = "0.2.0"
+version = "0.3.0"
 
 readme = "README.md"
 
@@ -24,8 +24,9 @@ keywords = [
   "management-accounting",
   "break-even",
   "scenario-analysis",
+  "budget-variance",
 ]
 
 preferred_target = "native"
 
-description = "MoonBit cost-volume-profit and product-mix planning with checked integer arithmetic."
+description = "MoonBit product-mix and multi-period operating plans with exact budget-to-actual profit bridges."

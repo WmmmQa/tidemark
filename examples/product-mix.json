@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "kind": "mix",
+  "items": [
+    {
+      "product": { "id": "meal", "selling_price_fen": "8000", "variable_cost_fen": "4800" },
+      "weight": "2"
+    },
+    {
+      "product": { "id": "drink", "selling_price_fen": "5000", "variable_cost_fen": "3000" },
+      "weight": "1"
+    }
+  ],
+  "fixed_cost_fen": "1600000",
+  "planned_bundles": "250",
+  "target_profit_fen": "800000"
+}
