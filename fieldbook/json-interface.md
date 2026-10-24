@@ -14,6 +14,8 @@ Copy an example and edit it. Run from the repository root. The default target is
 
 Every object rejects unknown fields and requires all fields shown below. `schema_version` is the JSON number `1`. Amounts, quantities and weights are **canonical decimal strings**, never JSON numbers. Examples: `"0"`, `"8000"`, `"1000000000"`. Leading/trailing whitespace, `+1`, `01`, `-0`, fractions and exponent notation are rejected. Parsing first checks signed Int64 representation, then the analysis API checks its domain bounds.
 
+Send `schema_version` as the integer literal `1`. Version dispatch compares the standard JSON parser's binary64 numeric value: a near-one decimal such as `1.0000000000000001` rounds to `1` and is accepted by the current parser, while `1.0000000000000002` remains a different value and is rejected. The decoder does not validate the original version-number spelling. Financial amounts, quantities and weights use the separate exact string parser described above; these remain exact decimal strings even when their values exceed JavaScript's safe-integer range.
+
 | Object | Required fields |
 | --- | --- |
 | Plan request | `schema_version`, `kind: "plan"`, `periods: Period[]` |

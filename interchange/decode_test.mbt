@@ -261,6 +261,30 @@ test "precision above JavaScript safe integer is retained in output" {
 }
 
 ///|
+test "version dispatch uses parsed JSON number while finance inputs stay exact strings" {
+  let source = plan([period("oct", "1000000000", "1000000000", "1", "1")]).replace(
+    old="\"schema_version\":1",
+    new="\"schema_version\":1.0000000000000001",
+  )
+  let response = @interchange.run_json(source)
+  @debug.assert_eq(at(response, ["ok"]), Json::boolean(true))
+  @debug.assert_eq(
+    at(response, ["result", "totals", "revenue_fen"]),
+    Json::string("1000000000000000000"),
+  )
+  @debug.assert_eq(
+    at(response, ["result", "totals", "operating_profit_fen"]),
+    Json::string("999999998999999999"),
+  )
+
+  assert_error(
+    source.replace(old="1.0000000000000001", new="1.0000000000000002"),
+    "decode",
+    "supported numeric version",
+  )
+}
+
+///|
 test "bounded transport rejects oversized input before JSON parsing" {
   @debug.assert_eq(
     @interchange.parse_request(" ".repeat(16001)),

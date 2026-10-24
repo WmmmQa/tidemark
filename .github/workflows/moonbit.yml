@@ -50,6 +50,9 @@ jobs:
           node scripts/check-examples.mjs native
           node scripts/check-examples.mjs js
 
+      - name: Check separate MoonBit library consumer on native and JS
+        run: node scripts/check-library-consumer.mjs native js
+
       - name: Run portfolio import example
         shell: bash
         run: |

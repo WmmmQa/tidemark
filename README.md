@@ -192,9 +192,10 @@ moon test --target native --deny-warn
 moon run cmd/main --target js
 moon run cmd/mix --target js
 node scripts/check-examples.mjs js
+node scripts/check-library-consumer.mjs js
 ```
 
-On Windows without MSVC, use `moon test --target js`; native execution requires a C toolchain. GitHub Actions on Ubuntu checks formatting and generated interfaces, native compilation, tests, the original walkthroughs and the structured file workflow on native and JS targets. Tests cover ratio equivalence, target minimality, loss periods, cumulative reconciliation, ID mismatches, all variance drivers, signed overflow, JSON precision/schema errors and compatibility with the single-product API. The example checker also verifies real CLI output, error exit codes and profit bridges using `BigInt`.
+On Windows without MSVC, run the JS test and execution commands locally; `moon check --target native --deny-warn` still checks native packages, while native execution requires a C toolchain. GitHub Actions on Ubuntu checks formatting and generated interfaces, native compilation, tests, the original walkthroughs, structured file workflows, and a separate two-module consumer importing all five public packages on native and JS targets. Tests cover ratio equivalence, target minimality, loss periods, cumulative reconciliation, ID mismatches, all variance drivers, signed overflow, JSON precision/schema behavior and compatibility with the single-product API. The example checker also verifies real CLI output, error exit codes and profit bridges using `BigInt`.
 
 The commands consume the libraries; calculation code lives in `domain/`, `engine/`, `portfolio/` and `planning/`, with JSON handling in `interchange/`. Three complete usage scenarios and design choices are in [`fieldbook/project-brief.md`](fieldbook/project-brief.md). Mooncakes publishing has not been performed; see [`fieldbook/release-checklist.md`](fieldbook/release-checklist.md) when preparing a release.
 
