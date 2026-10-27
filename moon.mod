@@ -20,6 +20,8 @@ repository = "https://github.com/WmmmQa/tidemark"
 license = "Apache-2.0"
 
 keywords = [
+  "integer-optimization",
+  "resource-allocation",
   "cost-volume-profit",
   "management-accounting",
   "break-even",
@@ -29,4 +31,4 @@ keywords = [
 
 preferred_target = "native"
 
-description = "MoonBit product-mix and multi-period operating plans with exact budget-to-actual profit bridges."
+description = "MoonBit bounded integer resource optimization with contribution planning and budget variance analysis."

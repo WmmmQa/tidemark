@@ -1,6 +1,6 @@
 # Use Tidemark from another MoonBit project
 
-Tidemark is currently distributed as source. Use a MoonBit workspace to resolve the module locally, then import only the packages your application needs. Mooncakes publication is not needed for this workflow.
+Tidemark is currently distributed as source. Use a MoonBit workspace to resolve the module locally, then import only the packages your application needs. The `optimizer` package handles bounded integer resource allocation; the management-accounting packages provide reusable scenario calculations. Mooncakes publication is not needed for this workflow.
 
 ## 1. Prepare sibling modules
 
@@ -25,6 +25,7 @@ tidemark-workspace/
     portfolio/
     planning/
     interchange/
+    optimizer/
   consumer/
     moon.mod
     moon.pkg
@@ -59,6 +60,7 @@ import {
   "WmmmQa/tidemark/portfolio",
   "WmmmQa/tidemark/planning",
   "WmmmQa/tidemark/interchange",
+  "WmmmQa/tidemark/optimizer",
 }
 pkgtype(kind: "executable")
 ```
@@ -67,6 +69,127 @@ Create `consumer/main.mbt`:
 
 ```moonbit
 fn main {
+  let allocation : @optimizer.AllocationProblem = {
+    resources: [
+      { id: "labor", capacity: 10L },
+      { id: "material", capacity: 8L },
+    ],
+    decisions: [
+      {
+        id: "panel",
+        value_per_unit: 8L,
+        max_units: 2L,
+        resource_uses: [
+          { resource_id: "labor", units_per_decision: 5L },
+          { resource_id: "material", units_per_decision: 3L },
+        ],
+      },
+      {
+        id: "kit",
+        value_per_unit: 9L,
+        max_units: 3L,
+        resource_uses: [
+          { resource_id: "labor", units_per_decision: 2L },
+          { resource_id: "material", units_per_decision: 4L },
+        ],
+      },
+    ],
+  }
+  match @optimizer.optimize(allocation, 100L) {
+    Ok(solution) => {
+      println("Optimal allocation value: \{solution.total_value}")
+      println("Kit quantity: \{solution.decisions[1].units}")
+    }
+    Err(_) => println("Allocation could not be solved within its limits")
+  }
+  let projects : @optimizer.AllocationProblem = {
+    resources: [{ id: "capital_fen", capacity: 10000000L }],
+    decisions: [
+      {
+        id: "A",
+        value_per_unit: 6500000L,
+        max_units: 1L,
+        resource_uses: [{
+          resource_id: "capital_fen",
+          units_per_decision: 4000000L,
+        }],
+      },
+      {
+        id: "B",
+        value_per_unit: 5200000L,
+        max_units: 1L,
+        resource_uses: [{
+          resource_id: "capital_fen",
+          units_per_decision: 3500000L,
+        }],
+      },
+      {
+        id: "C",
+        value_per_unit: 8000000L,
+        max_units: 1L,
+        resource_uses: [{
+          resource_id: "capital_fen",
+          units_per_decision: 6000000L,
+        }],
+      },
+    ],
+  }
+  match @optimizer.optimize(projects, 100L) {
+    Ok(solution) => {
+      println("Project portfolio value (fen): \{solution.total_value}")
+      println(
+        "Project choices (A,B,C): \{solution.decisions[0].units},\{solution.decisions[1].units},\{solution.decisions[2].units}",
+      )
+    }
+    Err(_) => println("Project portfolio could not be solved within its limits")
+  }
+  let capacity_plan : @portfolio.CapacityPlan = {
+    resources: [
+      { id: "labor", capacity: 5L },
+      { id: "material", capacity: 4L },
+    ],
+    items: [
+      {
+        product: {
+          id: "meal",
+          selling_price_fen: 8000L,
+          variable_cost_fen: 4800L,
+        },
+        max_units: 5L,
+        resource_uses: [
+          { resource_id: "labor", units_per_decision: 2L },
+          { resource_id: "material", units_per_decision: 1L },
+        ],
+      },
+      {
+        product: {
+          id: "drink",
+          selling_price_fen: 5000L,
+          variable_cost_fen: 3000L,
+        },
+        max_units: 5L,
+        resource_uses: [
+          { resource_id: "labor", units_per_decision: 1L },
+          { resource_id: "material", units_per_decision: 2L },
+        ],
+      },
+    ],
+    fixed_cost_fen: 3000L,
+  }
+  match @portfolio.optimize_capacity_plan(capacity_plan, 100L) {
+    Ok(result) => {
+      println(
+        "Capacity product units (meal,drink): \{result.products[0].units},\{result.products[1].units}",
+      )
+      println(
+        "Capacity contribution/profit (fen): \{result.contribution_fen}/\{result.operating_profit_fen}",
+      )
+      println(
+        "Capacity use (labor,material): \{result.resources[0].used},\{result.resources[1].used}",
+      )
+    }
+    Err(_) => println("Capacity-constrained product plan could not be solved")
+  }
   let product : @portfolio.Product = {
     id: "meal",
     selling_price_fen: 8000L,
@@ -118,6 +241,13 @@ moon run --target js .
 Expected stdout:
 
 ```text
+Optimal allocation value: 18
+Kit quantity: 2
+Project portfolio value (fen): 14500000
+Project choices (A,B,C): 1,0,1
+Capacity product units (meal,drink): 2,1
+Capacity contribution/profit (fen): 8400/5400
+Capacity use (labor,material): 5,4
 Single-product break-even units: 500
 Portfolio break-even bundles: 500
 Target gap (fen): 160000
@@ -126,4 +256,4 @@ Invalid JSON request rejected
 
 The native command checks the packages; executing the native target additionally requires a C toolchain. The calculation APIs take typed MoonBit values and do not require Node.js. Node.js is used for the JS backend and for the separate file wrapper described in the README.
 
-Applications can import fewer packages and replace this illustrative error handling with their own messages. Handle `MixError`, `PlanError` and `DecodeError` explicitly when calling their corresponding APIs; input units and model limits remain those documented in the README and JSON interface.
+Applications can import fewer packages and replace this illustrative error handling with their own messages. Handle `AllocationError`, `CapacityPlanError`, `MixError`, `PlanError` and `DecodeError` explicitly when calling their corresponding APIs; input units and model limits remain those documented in the README and JSON interface.

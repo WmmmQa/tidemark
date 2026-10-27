@@ -1,6 +1,6 @@
 # JSON interface — schema version 1
 
-`interchange` converts structured requests to the pure `portfolio` and `planning` APIs. `cmd/report` accepts exactly one JSON string argument and prints one JSON response. The file wrapper makes that workflow convenient without moving calculations out of MoonBit:
+`interchange` converts structured requests to the pure fixed-mix `portfolio` and multi-period `planning` APIs. `cmd/report` accepts exactly one JSON string argument and prints one JSON response. Schema version 1 does not yet cover capacity-constrained product planning; callers use the typed `portfolio.optimize_capacity_plan` API, backed by the `optimizer` package. The file wrapper makes the supported financial workflow convenient without moving calculations out of MoonBit:
 
 ```sh
 node scripts/analyze.mjs examples/operating-plan.json

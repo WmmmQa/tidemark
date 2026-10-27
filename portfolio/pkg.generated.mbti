@@ -2,6 +2,7 @@
 package "WmmmQa/tidemark/portfolio"
 
 import {
+  "WmmmQa/tidemark/optimizer",
   "moonbitlang/core/debug",
 }
 
@@ -20,9 +21,69 @@ pub fn mix_break_even(MixPlan) -> Result[MixTarget, MixError]
 
 pub fn mix_target(MixPlan, Int64) -> Result[MixTarget, MixError]
 
+pub fn optimize_capacity_plan(CapacityPlan, Int64) -> Result[CapacityEvaluation, CapacityPlanError]
+
 // Errors
 
 // Types and methods
+pub(all) struct CapacityEvaluation {
+  products : Array[CapacityProductSales]
+  resources : Array[@optimizer.ResourceTotal]
+  revenue_fen : Int64
+  variable_cost_fen : Int64
+  contribution_fen : Int64
+  fixed_cost_fen : Int64
+  operating_profit_fen : Int64
+  explored_nodes : Int64
+} derive(Eq, @debug.Debug)
+pub fn CapacityEvaluation::equal(Self, Self) -> Bool
+pub fn CapacityEvaluation::not_equal(Self, Self) -> Bool
+pub fn CapacityEvaluation::to_repr(Self) -> @debug.Repr
+
+pub(all) struct CapacityItem {
+  product : Product
+  max_units : Int64
+  resource_uses : Array[@optimizer.ResourceUse]
+} derive(Eq, @debug.Debug)
+pub fn CapacityItem::equal(Self, Self) -> Bool
+pub fn CapacityItem::not_equal(Self, Self) -> Bool
+pub fn CapacityItem::to_repr(Self) -> @debug.Repr
+
+pub(all) struct CapacityPlan {
+  items : Array[CapacityItem]
+  resources : Array[@optimizer.Resource]
+  fixed_cost_fen : Int64
+} derive(Eq, @debug.Debug)
+pub fn CapacityPlan::equal(Self, Self) -> Bool
+pub fn CapacityPlan::not_equal(Self, Self) -> Bool
+pub fn CapacityPlan::to_repr(Self) -> @debug.Repr
+
+pub(all) enum CapacityPlanError {
+  EmptyCapacityPlan
+  InvalidCapacityProductId(Int)
+  DuplicateCapacityProductId(String)
+  CapacityPriceOutOfRange(String)
+  CapacityVariableCostOutOfRange(String)
+  CapacityQuantityOutOfRange(String)
+  CapacityFixedCostOutOfRange
+  AllocationFailure(@optimizer.AllocationError)
+  CapacityOverflow(String)
+} derive(Eq, @debug.Debug)
+pub fn CapacityPlanError::equal(Self, Self) -> Bool
+pub fn CapacityPlanError::not_equal(Self, Self) -> Bool
+pub fn CapacityPlanError::to_repr(Self) -> @debug.Repr
+
+pub(all) struct CapacityProductSales {
+  product : Product
+  units : Int64
+  revenue_fen : Int64
+  variable_cost_fen : Int64
+  contribution_fen : Int64
+} derive(Eq, @debug.Debug)
+pub fn CapacityProductSales::equal(Self, Self) -> Bool
+pub fn CapacityProductSales::not_equal(Self, Self) -> Bool
+pub fn CapacityProductSales::to_repr(Self) -> @debug.Repr
+
 pub(all) struct MixComparison {
   baseline : MixEvaluation
   alternative : MixEvaluation

@@ -26,7 +26,7 @@ const consumerModule = documentedBlockAfter('Create `consumer/moon.mod`:');
 const consumerPackage = documentedBlockAfter('Create `consumer/moon.pkg`:');
 const consumerSource = documentedBlockAfter('Create `consumer/main.mbt`:');
 const expectedOutput = documentedBlockAfter('Expected stdout:').trimEnd();
-for (const packageName of ['domain', 'engine', 'portfolio', 'planning', 'interchange']) {
+for (const packageName of ['domain', 'engine', 'portfolio', 'planning', 'interchange', 'optimizer']) {
   assert.ok(consumerPackage.includes(`"WmmmQa/tidemark/${packageName}"`), `consumer must import ${packageName}`);
 }
 
@@ -66,7 +66,7 @@ try {
   await cp(resolve(root, 'moon.mod'), join(moduleRoot, 'moon.mod'));
   await cp(resolve(root, 'moon.pkg'), join(moduleRoot, 'moon.pkg'));
 
-  for (const packageName of ['domain', 'engine', 'portfolio', 'planning', 'interchange']) {
+  for (const packageName of ['domain', 'engine', 'portfolio', 'planning', 'interchange', 'optimizer']) {
     const sourcePackage = resolve(root, packageName);
     const targetPackage = join(moduleRoot, packageName);
     await mkdir(targetPackage);

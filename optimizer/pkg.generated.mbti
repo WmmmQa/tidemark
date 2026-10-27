@@ -1,0 +1,108 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "WmmmQa/tidemark/optimizer"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub const MAX_DECISIONS : Int = 32
+
+pub const MAX_INPUT_COEFFICIENT : Int64 = 1_000_000_000
+
+pub const MAX_RESOURCES : Int = 16
+
+pub const MAX_SEARCH_NODES : Int64 = 250_000
+
+pub fn optimize(AllocationProblem, Int64) -> Result[AllocationSolution, AllocationError]
+
+// Errors
+
+// Types and methods
+pub(all) enum AllocationError {
+  EmptyDecisions
+  TooManyDecisions
+  TooManyResources
+  InvalidResourceId(Int)
+  DuplicateResourceId(String)
+  CapacityOutOfRange(String)
+  InvalidDecisionId(Int)
+  DuplicateDecisionId(String)
+  ValueOutOfRange(String)
+  MaxUnitsOutOfRange(String)
+  ResourceUseCountMismatch(String)
+  UnknownResource(String, String)
+  DuplicateResourceUse(String, String)
+  ResourceUnitsOutOfRange(String, String)
+  SearchLimitOutOfRange
+  SearchLimitExceeded(Int64)
+  ObjectiveOverflow
+} derive(Eq, @debug.Debug)
+pub fn AllocationError::equal(Self, Self) -> Bool
+pub fn AllocationError::not_equal(Self, Self) -> Bool
+pub fn AllocationError::to_repr(Self) -> @debug.Repr
+
+pub(all) struct AllocationProblem {
+  resources : Array[Resource]
+  decisions : Array[Decision]
+} derive(Eq, @debug.Debug)
+pub fn AllocationProblem::equal(Self, Self) -> Bool
+pub fn AllocationProblem::not_equal(Self, Self) -> Bool
+pub fn AllocationProblem::to_repr(Self) -> @debug.Repr
+
+pub(all) struct AllocationSolution {
+  total_value : Int64
+  decisions : Array[DecisionQuantity]
+  resources : Array[ResourceTotal]
+  explored_nodes : Int64
+} derive(Eq, @debug.Debug)
+pub fn AllocationSolution::equal(Self, Self) -> Bool
+pub fn AllocationSolution::not_equal(Self, Self) -> Bool
+pub fn AllocationSolution::to_repr(Self) -> @debug.Repr
+
+pub(all) struct Decision {
+  id : String
+  value_per_unit : Int64
+  max_units : Int64
+  resource_uses : Array[ResourceUse]
+} derive(Eq, @debug.Debug)
+pub fn Decision::equal(Self, Self) -> Bool
+pub fn Decision::not_equal(Self, Self) -> Bool
+pub fn Decision::to_repr(Self) -> @debug.Repr
+
+pub(all) struct DecisionQuantity {
+  decision_id : String
+  units : Int64
+} derive(Eq, @debug.Debug)
+pub fn DecisionQuantity::equal(Self, Self) -> Bool
+pub fn DecisionQuantity::not_equal(Self, Self) -> Bool
+pub fn DecisionQuantity::to_repr(Self) -> @debug.Repr
+
+pub(all) struct Resource {
+  id : String
+  capacity : Int64
+} derive(Eq, @debug.Debug)
+pub fn Resource::equal(Self, Self) -> Bool
+pub fn Resource::not_equal(Self, Self) -> Bool
+pub fn Resource::to_repr(Self) -> @debug.Repr
+
+pub(all) struct ResourceTotal {
+  resource_id : String
+  used : Int64
+  capacity : Int64
+} derive(Eq, @debug.Debug)
+pub fn ResourceTotal::equal(Self, Self) -> Bool
+pub fn ResourceTotal::not_equal(Self, Self) -> Bool
+pub fn ResourceTotal::to_repr(Self) -> @debug.Repr
+
+pub(all) struct ResourceUse {
+  resource_id : String
+  units_per_decision : Int64
+} derive(Eq, @debug.Debug)
+pub fn ResourceUse::equal(Self, Self) -> Bool
+pub fn ResourceUse::not_equal(Self, Self) -> Bool
+pub fn ResourceUse::to_repr(Self) -> @debug.Repr
+
+// Type aliases
+
+// Traits

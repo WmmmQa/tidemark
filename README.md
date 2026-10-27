@@ -1,8 +1,8 @@
 # Tidemark
 
-**A MoonBit library for product-mix planning and budget-to-actual profit analysis.**
+**A MoonBit bounded integer resource optimizer with management-accounting applications.**
 
-Tidemark turns explicit operating assumptions into reproducible profit calculations. It supports single-product CVP, multi-product sales mixes, multi-period operating plans, and an exact budget-to-actual profit bridge. It is intended for management accounting tools, small-business planning and teaching applications built with MoonBit. The calculation libraries run independently of the command-line interface.
+Tidemark solves bounded integer allocation problems under scarce-resource limits, then provides management-accounting APIs for explaining the resulting plans. The optimizer is a reusable algorithmic core for production mix, project selection and other finite resource-allocation problems; the other packages cover contribution analysis, multi-period plans and budget-to-actual profit bridges. All calculation APIs are pure MoonBit and can be used without the command-line wrappers.
 
 ## Packages and current scope
 
@@ -10,13 +10,14 @@ Tidemark turns explicit operating assumptions into reproducible profit calculati
 | --- | --- |
 | `WmmmQa/tidemark/domain` | Single-product assumptions, validation and unit contribution |
 | `WmmmQa/tidemark/engine` | Contribution ratio, break-even, target-profit volume/revenue, profit, safety margin, named scenarios and sensitivity |
-| `WmmmQa/tidemark/portfolio` | Normalized multi-product sales mixes, shared fixed costs, product quantities, whole-bundle targets and financial comparisons |
+| `WmmmQa/tidemark/portfolio` | Fixed-mix targets and comparisons, plus contribution-maximizing product quantities under shared resource capacities |
 | `WmmmQa/tidemark/planning` | Multi-period product sales, cumulative amounts, target gaps and ID-aligned budget/actual profit decomposition |
 | `WmmmQa/tidemark/interchange` | Reusable versioned JSON decoding, analysis dispatch and precision-preserving results |
+| `WmmmQa/tidemark/optimizer` | Exact bounded integer optimization under multiple resource-capacity constraints |
 
-Portfolio break-even uses a fixed sales mix within one period. Operating plans can use different products, quantities, prices and costs in each period. The model does not forecast demand, account for tax, handle inventory or capacity constraints, or decide whether a business plan is viable. Operating profit is not cash flow.
+Portfolio break-even still assumes a fixed sales mix within one period. `portfolio.optimize_capacity_plan` uses the separate `optimizer` package to select product quantities without a fixed ratio, then reconciles revenue, variable cost, contribution and shared fixed cost. Operating plans can vary products and costs by period. The library does not forecast demand, manage inventory, calculate tax or accounting statements, or treat operating profit as cash flow.
 
-To call these packages from a separate MoonBit project, follow the [local workspace integration guide](fieldbook/using-as-a-library.md). It includes module dependency configuration and a complete consumer importing all five packages. This source-based workflow is available before a Mooncakes release.
+To call these packages from another MoonBit project, follow the [local workspace integration guide](fieldbook/using-as-a-library.md). It imports all six packages and runs a separate consumer against the local source, before any Mooncakes release.
 
 ## Start with an editable JSON file
 
@@ -37,6 +38,14 @@ Copy an example, edit the decimal strings and rerun the command. Money uses inte
 | `budget-actual.json` | Two-period budget profit ¥14,200 versus actual ¥4,660; difference −¥9,540 |
 
 These are separate hypothetical operating scenarios. Input fields, output structure, integer limits and errors are specified in [`fieldbook/json-interface.md`](fieldbook/json-interface.md); [`schema/request.schema.json`](schema/request.schema.json) supports editor validation. Native execution is available with `--target native` when a C toolchain is installed. The default target is JS.
+
+## Bounded integer resource optimization
+
+`optimizer.optimize(problem, max_nodes)` maximizes the sum of nonnegative per-unit values while respecting each resource capacity and each decision's finite quantity bound. The solver uses deterministic branch-and-bound with a safe per-resource value-density upper bound. A result is returned only after the search proves optimality; if the node budget is exhausted, it returns a typed error instead of an unproven incumbent.
+
+For example, with 10 labor units and 8 material units, a panel decision worth 8 uses 5 labor and 3 material, while a kit worth 9 uses 2 labor and 4 material. The exact optimum is 2 kits, value 18. A complete importable MoonBit example is in [`fieldbook/using-as-a-library.md`](fieldbook/using-as-a-library.md).
+
+The bounded model supports up to 32 decisions and 16 resources. Per-unit values, resource capacities, resource use and decision bounds are nonnegative and at most 1,000,000,000; the search budget is at most 250,000 nodes. Constraints are resource upper bounds and decision upper bounds; minimum quantities, equality constraints, nonlinear objectives and decision interactions are outside this solver's scope. Larger or harder cases may return `SearchLimitExceeded` and require a higher-level planning method.
 
 ## Single-product pricing
 
@@ -195,9 +204,9 @@ node scripts/check-examples.mjs js
 node scripts/check-library-consumer.mjs js
 ```
 
-On Windows without MSVC, run the JS test and execution commands locally; `moon check --target native --deny-warn` still checks native packages, while native execution requires a C toolchain. GitHub Actions on Ubuntu checks formatting and generated interfaces, native compilation, tests, the original walkthroughs, structured file workflows, and a separate two-module consumer importing all five public packages on native and JS targets. Tests cover ratio equivalence, target minimality, loss periods, cumulative reconciliation, ID mismatches, all variance drivers, signed overflow, JSON precision/schema behavior and compatibility with the single-product API. The example checker also verifies real CLI output, error exit codes and profit bridges using `BigInt`.
+On Windows without MSVC, run the JS test and execution commands locally; `moon check --target native --deny-warn` still checks native packages, while native execution requires a C toolchain. GitHub Actions on Ubuntu checks formatting, generated interfaces, native compilation and tests, financial examples, structured file workflows, and a two-module consumer importing all six public packages on native and JS targets. Tests cover allocation optima against exhaustive small grids, multiple resource limits, deterministic ties, search exhaustion and overflow, alongside CVP, portfolio, multi-period, reconciliation and JSON boundaries. The example checker also verifies CLI output, error codes and profit bridges using `BigInt`.
 
-The commands consume the libraries; calculation code lives in `domain/`, `engine/`, `portfolio/` and `planning/`, with JSON handling in `interchange/`. Three complete usage scenarios and design choices are in [`fieldbook/project-brief.md`](fieldbook/project-brief.md). Mooncakes publishing has not been performed; see [`fieldbook/release-checklist.md`](fieldbook/release-checklist.md) when preparing a release.
+The commands consume the libraries; optimization code lives in `optimizer/`, management-accounting calculations in `domain/`, `engine/`, `portfolio/` and `planning/`, and financial JSON handling in `interchange/`. Scenarios, algorithm limits and design choices are in [`fieldbook/project-brief.md`](fieldbook/project-brief.md). Mooncakes publishing has not been performed; see [`fieldbook/release-checklist.md`](fieldbook/release-checklist.md) when preparing a release.
 
 ## License
 
