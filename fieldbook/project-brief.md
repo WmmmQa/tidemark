@@ -6,7 +6,7 @@
 
 项目输入为决策价值、数量上限、每单位资源用量及各资源容量；价值可用贡献额或其他同口径整数评分。与只测算预设销量或固定销售配比不同，`optimizer` 会搜索满足多项资源约束的数量组合。项目不宣称是通用数学规划求解器，也不取代完整生产排程、会计或税务系统。
 
-相邻 MoonBit 项目覆盖通用金额计算、会计报表和个人预算等需求；Tidemark 的优化 API 处理有界整数决策与稀缺资源配置，财务包负责解释贡献和利润。生态版本对照及范围见 [Aurum](https://github.com/Lyllyl789/aurum)、[moonmoney](https://github.com/haol-05/moonmoney)、[moonbit-accounting 0.3.0](https://mooncakes.io/docs/mhlagent/moonbit-accounting@0.3.0) 与 [finapp 0.1.2](https://mooncakes.io/docs/bobzhang/finapp@0.1.2/shared)；不据此声称生态中不存在其他规划工具或已有集成。
+MoonBit 生态已有通用线性与整数规划求解器 [moonopt 0.4.0](https://mooncakes.io/docs/Freon793/moonopt@0.4.0)，支持 MPS/LP 模型、单纯形与整数分支定界等能力。此类求解器可以表达 Tidemark 当前的容量分配问题；Tidemark 不宣称通用求解器能力或生态唯一性。它的较窄定位是把产品售价、单位变动成本、资源耗用和共享固定费用直接组织为财务管理 API，并返回产品销量、收入、成本、贡献和利润明细。其他相邻项目包括 [Aurum](https://github.com/Lyllyl789/aurum)、[moonmoney](https://github.com/haol-05/moonmoney)、[moonbit-accounting 0.3.0](https://mooncakes.io/docs/mhlagent/moonbit-accounting@0.3.0) 与 [finapp 0.1.2](https://mooncakes.io/docs/bobzhang/finapp@0.1.2/shared)；Tidemark 未声明与这些项目已有集成。该项目的价值在于财务领域的直接建模与结果解释，而非比通用规划求解器覆盖更多模型。
 
 ## 算法与限制
 

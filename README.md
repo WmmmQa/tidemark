@@ -4,6 +4,8 @@
 
 Tidemark solves bounded integer allocation problems under scarce-resource limits, then provides management-accounting APIs for explaining the resulting plans. The optimizer is a reusable algorithmic core for production mix, project selection and other finite resource-allocation problems; the other packages cover contribution analysis, multi-period plans and budget-to-actual profit bridges. All calculation APIs are pure MoonBit and can be used without the command-line wrappers.
 
+MoonBit also has broader LP/MIP tooling such as [moonopt](https://mooncakes.io/docs/Freon793/moonopt@0.4.0), which supports standard model formats and general integer-programming workflows. Tidemark focuses on a bounded resource model with a finance-facing API: product prices, variable costs, shared capacities and fixed costs produce whole-unit allocations and reconciled contribution/profit details.
+
 ## Packages and current scope
 
 | Import | Reusable functionality |
