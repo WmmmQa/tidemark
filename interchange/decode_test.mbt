@@ -322,3 +322,123 @@ test "comparison missing pairs are not silently defaulted" {
   }
   assert_error(source.stringify(), "analysis", "MissingPeriod")
 }
+
+///|
+fn capacity_request(nodes : String) -> String {
+  (
+    #|{
+    #|  "schema_version": 1,
+    #|  "kind": "capacity",
+    #|  "resources": [
+    #|    {"id":"labor","capacity":"12"},
+    #|    {"id":"material","capacity":"10"}
+    #|  ],
+    #|  "items": [
+    #|    {"product":{"id":"meal","selling_price_fen":"8000","variable_cost_fen":"4800"},"max_units":"5","resource_uses":[{"resource_id":"labor","units_per_decision":"2"},{"resource_id":"material","units_per_decision":"1"}]},
+    #|    {"product":{"id":"drink","selling_price_fen":"5000","variable_cost_fen":"3000"},"max_units":"5","resource_uses":[{"resource_id":"labor","units_per_decision":"1"},{"resource_id":"material","units_per_decision":"2"}]},
+    #|    {"product":{"id":"dessert","selling_price_fen":"7000","variable_cost_fen":"2500"},"max_units":"4","resource_uses":[{"resource_id":"labor","units_per_decision":"3"},{"resource_id":"material","units_per_decision":"1"}]}
+    #|  ],
+    #|  "fixed_cost_fen": "3000",
+    #|  "max_nodes": "10000"
+    #|}
+  ).replace(old="10000", new=nodes)
+}
+
+///|
+test "capacity JSON request runs the exact finance optimizer and returns a reconciled plan" {
+  let response = @interchange.run_json(capacity_request("10000"))
+  @debug.assert_eq(at(response, ["ok"]), Json::boolean(true))
+  @debug.assert_eq(at(response, ["result", "kind"]), Json::string("capacity"))
+  let products = match at(response, ["result", "products"]) {
+    Array(rows) => rows
+    _ => abort("expected product rows")
+  }
+  @debug.assert_eq(at(products[0], ["units"]), Json::string("3"))
+  @debug.assert_eq(at(products[1], ["units"]), Json::string("3"))
+  @debug.assert_eq(at(products[2], ["units"]), Json::string("1"))
+  @debug.assert_eq(
+    at(response, ["result", "revenue_fen"]),
+    Json::string("46000"),
+  )
+  @debug.assert_eq(
+    at(response, ["result", "variable_cost_fen"]),
+    Json::string("25900"),
+  )
+  @debug.assert_eq(
+    at(response, ["result", "contribution_fen"]),
+    Json::string("20100"),
+  )
+  @debug.assert_eq(
+    at(response, ["result", "operating_profit_fen"]),
+    Json::string("17100"),
+  )
+  let resources = match at(response, ["result", "resources"]) {
+    Array(rows) => rows
+    _ => abort("expected resource rows")
+  }
+  @debug.assert_eq(at(resources[0], ["used"]), Json::string("12"))
+  @debug.assert_eq(at(resources[1], ["used"]), Json::string("10"))
+}
+
+///|
+test "capacity JSON rejects unknown and malformed fields and preserves optimizer bounds" {
+  assert_error(
+    capacity_request("10000").replace(
+      old="\"max_nodes\": \"10000\"",
+      new="\"max_nodes\": \"10000\", \"maximum_nodes\": \"2\"",
+    ),
+    "decode",
+    "$.maximum_nodes",
+  )
+  assert_error(
+    capacity_request("10000").replace(
+      old="\"max_units\":\"5\"",
+      new="\"max_units\":9007199254740993",
+    ),
+    "decode",
+    "expected string",
+  )
+  assert_error(
+    capacity_request("10000").replace(
+      old="\"max_units\":\"5\"",
+      new="\"max_units\":\"9007199254740993\"",
+    ),
+    "analysis",
+    "CapacityQuantityOutOfRange(\"meal\")",
+  )
+  assert_error(
+    capacity_request("10000").replace(
+      old="{\"id\":\"material\",\"capacity\":\"10\"}",
+      new="{\"id\":\"labor\",\"capacity\":\"10\"}",
+    ),
+    "analysis",
+    "DuplicateResourceId(\"labor\")",
+  )
+  assert_error(capacity_request("0"), "analysis", "SearchLimitOutOfRange")
+  assert_error(capacity_request("1"), "analysis", "SearchLimitExceeded")
+  assert_error(capacity_request("250001"), "analysis", "SearchLimitOutOfRange")
+  assert_error(
+    capacity_request("10000").replace(
+      old="{\"resource_id\":\"material\",\"units_per_decision\":\"1\"}",
+      new="{\"resource_id\":\"other\",\"units_per_decision\":\"1\"}",
+    ),
+    "analysis",
+    "UnknownResource(\"meal\", \"other\")",
+  )
+}
+
+///|
+test "capacity JSON keeps monetary output exact beyond JavaScript integer range" {
+  let source =
+    #|{"schema_version":1,"kind":"capacity","resources":[],"items":[{"product":{"id":"bulk","selling_price_fen":"1000000000","variable_cost_fen":"0"},"max_units":"1000000000","resource_uses":[]}],"fixed_cost_fen":"0","max_nodes":"100"}
+  let response = @interchange.run_json(source)
+  @debug.assert_eq(at(response, ["ok"]), Json::boolean(true))
+  @debug.assert_eq(
+    at(response, ["result", "revenue_fen"]),
+    Json::string("1000000000000000000"),
+  )
+  @debug.assert_eq(
+    at(response, ["result", "contribution_fen"]),
+    Json::string("1000000000000000000"),
+  )
+}

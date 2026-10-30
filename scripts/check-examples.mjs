@@ -72,6 +72,21 @@ assert.equal(mix.target.required.revenue_fen, '6006000');
 assert.equal(mix.target.rounding_surplus_fen, '2400');
 checkPrecision(mix);
 
+const capacity = runFile('examples/capacity-plan.json').result;
+assert.equal(capacity.kind, 'capacity');
+assert.deepEqual(capacity.products.map(row => row.units), ['3', '3', '1']);
+assert.equal(capacity.revenue_fen, '46000');
+assert.equal(capacity.variable_cost_fen, '25900');
+assert.equal(capacity.contribution_fen, '20100');
+assert.equal(capacity.fixed_cost_fen, '3000');
+assert.equal(capacity.operating_profit_fen, '17100');
+assert.deepEqual(capacity.resources.map(row => [row.id, row.used, row.capacity]), [
+  ['labor', '12', '12'],
+  ['material', '10', '10'],
+]);
+assert.equal(Number(capacity.explored_nodes) > 0, true);
+checkPrecision(capacity);
+
 assert.equal(runFile('examples/invalid-units.json', 2).error.kind, 'analysis');
 assert.equal(runFile('examples/invalid-schema.json', 2).error.kind, 'decode');
 assert.equal(runFile('examples/missing-input-file.json', 2).error.kind, 'io');

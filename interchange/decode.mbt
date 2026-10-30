@@ -109,6 +109,64 @@ fn product(
 }
 
 ///|
+fn resources(
+  value : Json,
+  path : String,
+) -> Array[@optimizer.Resource] raise DecodeFailure {
+  let result = []
+  for index, row in values(value, path) {
+    let location = "\{path}[\{index}]"
+    let fields = object_fields(row, location, ["id", "capacity"])
+    result.push(@optimizer.Resource::{
+      id: text(field(fields, "id"), "\{location}.id"),
+      capacity: integer(field(fields, "capacity"), "\{location}.capacity"),
+    })
+  }
+  result
+}
+
+///|
+fn capacity_items(
+  value : Json,
+  path : String,
+) -> Array[@portfolio.CapacityItem] raise DecodeFailure {
+  let result = []
+  for index, row in values(value, path) {
+    let location = "\{path}[\{index}]"
+    let fields = object_fields(row, location, [
+      "product", "max_units", "resource_uses",
+    ])
+    let resource_uses = []
+    for
+      use_index, use_row in values(
+        field(fields, "resource_uses"),
+        "\{location}.resource_uses",
+      ) {
+      let use_path = "\{location}.resource_uses[\{use_index}]"
+      let use_fields = object_fields(use_row, use_path, [
+        "resource_id", "units_per_decision",
+      ])
+      resource_uses.push(@optimizer.ResourceUse::{
+        resource_id: text(
+          field(use_fields, "resource_id"),
+          "\{use_path}.resource_id",
+        ),
+        units_per_decision: integer(
+          field(use_fields, "units_per_decision"),
+          "\{use_path}.units_per_decision",
+        ),
+      })
+    }
+    result.push(@portfolio.CapacityItem::{
+      product: product(field(fields, "product"), "\{location}.product"),
+      max_units: integer(field(fields, "max_units"), "\{location}.max_units"),
+      resource_uses,
+    })
+  }
+  result
+}
+
+///|
 fn periods(
   value : Json,
   path : String,
@@ -168,6 +226,10 @@ fn decode_request(value : Json) -> Request raise DecodeFailure {
       [
         "schema_version", "kind", "items", "fixed_cost_fen", "planned_bundles", "target_profit_fen",
       ]
+    "capacity" =>
+      [
+        "schema_version", "kind", "resources", "items", "fixed_cost_fen", "max_nodes",
+      ]
     _ => return invalid("$.kind", "unsupported request kind")
   }
   let fields = object_fields(value, "$", allowed)
@@ -182,7 +244,7 @@ fn decode_request(value : Json) -> Request raise DecodeFailure {
         periods(field(fields, "budget"), "$.budget"),
         periods(field(fields, "actual"), "$.actual"),
       )
-    _ => {
+    "mix" => {
       let items = []
       for index, row in values(field(fields, "items"), "$.items") {
         let path = "$.items[\{index}]"
@@ -204,5 +266,17 @@ fn decode_request(value : Json) -> Request raise DecodeFailure {
         integer(field(fields, "target_profit_fen"), "$.target_profit_fen"),
       )
     }
+    _ =>
+      Capacity(
+        {
+          resources: resources(field(fields, "resources"), "$.resources"),
+          items: capacity_items(field(fields, "items"), "$.items"),
+          fixed_cost_fen: integer(
+            field(fields, "fixed_cost_fen"),
+            "$.fixed_cost_fen",
+          ),
+        },
+        integer(field(fields, "max_nodes"), "$.max_nodes"),
+      )
   }
 }

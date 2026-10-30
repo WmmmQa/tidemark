@@ -14,7 +14,7 @@ MoonBit also has broader LP/MIP tooling such as [moonopt](https://mooncakes.io/d
 | `WmmmQa/tidemark/engine` | Contribution ratio, break-even, target-profit volume/revenue, profit, safety margin, named scenarios and sensitivity |
 | `WmmmQa/tidemark/portfolio` | Fixed-mix targets and comparisons, plus contribution-maximizing product quantities under shared resource capacities |
 | `WmmmQa/tidemark/planning` | Multi-period product sales, cumulative amounts, target gaps and ID-aligned budget/actual profit decomposition |
-| `WmmmQa/tidemark/interchange` | Reusable versioned JSON decoding, analysis dispatch and precision-preserving results |
+| `WmmmQa/tidemark/interchange` | Reusable versioned JSON for capacity optimization and financial analysis, with precision-preserving results |
 | `WmmmQa/tidemark/optimizer` | Exact bounded integer optimization under multiple resource-capacity constraints |
 
 Portfolio break-even still assumes a fixed sales mix within one period. `portfolio.optimize_capacity_plan` uses the separate `optimizer` package to select product quantities without a fixed ratio, then reconciles revenue, variable cost, contribution and shared fixed cost. Operating plans can vary products and costs by period. The library does not forecast demand, manage inventory, calculate tax or accounting statements, or treat operating profit as cash flow.
@@ -39,6 +39,7 @@ Requires MoonBit and Node.js (CI uses Node 22). From the repository directory:
 node scripts/analyze.mjs examples/product-mix.json
 node scripts/analyze.mjs examples/operating-plan.json
 node scripts/analyze.mjs examples/budget-actual.json
+node scripts/analyze.mjs examples/capacity-plan.json
 ```
 
 Copy an example, edit the decimal strings and rerun the command. Money uses integer **fen** (¥80 = `"8000"`); quantities use whole units. The wrapper loads the file and passes it to the MoonBit CLI. All business calculations, schema decoding and financial result construction are MoonBit code. The result on stdout is one JSON document, suitable for another program to consume. Amounts and quantities remain strings even when results exceed JavaScript's exact integer range.
@@ -50,6 +51,8 @@ Copy an example, edit the decimal strings and rerun the command. Money uses inte
 | `budget-actual.json` | Two-period budget profit ¥14,200 versus actual ¥4,660; difference −¥9,540 |
 
 These are separate hypothetical operating scenarios. Input fields, output structure, integer limits and errors are specified in [`fieldbook/json-interface.md`](fieldbook/json-interface.md); [`schema/request.schema.json`](schema/request.schema.json) supports editor validation. Native execution is available with `--target native` when a C toolchain is installed. The default target is JS.
+
+The capacity request is also editable as JSON. It sends product price, variable cost and quantity cap together with resource capacities, per-product resource use, shared fixed cost and a search-node limit to the MoonBit API. `node scripts/analyze.mjs examples/capacity-plan.json` returns the exact optimized quantities and reconciled finance/resource totals; all monetary and quantity outputs remain decimal strings.
 
 ## Bounded integer resource optimization
 

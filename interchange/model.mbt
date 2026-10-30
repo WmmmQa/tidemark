@@ -4,6 +4,7 @@ pub(all) enum Request {
   Plan(Array[@planning.PeriodPlan])
   Comparison(Array[@planning.PeriodPlan], Array[@planning.PeriodPlan])
   Mix(@portfolio.MixPlan, Int64, Int64)
+  Capacity(@portfolio.CapacityPlan, Int64)
 } derive(Eq, Debug)
 
 ///|

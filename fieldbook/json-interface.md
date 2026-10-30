@@ -1,11 +1,12 @@
 # JSON interface — schema version 1
 
-`interchange` converts structured requests to the pure fixed-mix `portfolio` and multi-period `planning` APIs. `cmd/report` accepts exactly one JSON string argument and prints one JSON response. Schema version 1 does not yet cover capacity-constrained product planning; callers use the typed `portfolio.optimize_capacity_plan` API, backed by the `optimizer` package. The file wrapper makes the supported financial workflow convenient without moving calculations out of MoonBit:
+`interchange` converts structured requests to pure fixed-mix, capacity-planning and multi-period APIs. `cmd/report` accepts exactly one JSON string argument and prints one JSON response. Capacity requests call `portfolio.optimize_capacity_plan`, backed by the exact `optimizer` package. The Node wrapper only reads the user file and transports its text; decoding, optimization and finance calculations run in MoonBit:
 
 ```sh
 node scripts/analyze.mjs examples/operating-plan.json
 node scripts/analyze.mjs examples/budget-actual.json --target js
 node scripts/analyze.mjs examples/product-mix.json --target native
+node scripts/analyze.mjs examples/capacity-plan.json
 ```
 
 Copy an example and edit it. Run from the repository root. The default target is JS; native requires a C toolchain. Node 22 is used in CI. No dependencies need to be installed with npm.
@@ -21,10 +22,14 @@ Send `schema_version` as the integer literal `1`. Version dispatch compares the 
 | Plan request | `schema_version`, `kind: "plan"`, `periods: Period[]` |
 | Comparison request | `schema_version`, `kind: "comparison"`, `budget: Period[]`, `actual: Period[]` |
 | Mix request | `schema_version`, `kind: "mix"`, `items: MixItem[]`, `fixed_cost_fen`, `planned_bundles`, `target_profit_fen` |
+| Capacity request | `schema_version`, `kind: "capacity"`, `resources: Resource[]`, `items: CapacityItem[]`, `fixed_cost_fen`, `max_nodes` |
 | Period | `id`, `products: SalesLine[]`, `fixed_cost_fen`, `target_profit_fen` |
 | SalesLine | `product: Product`, `units` |
 | Product | `id`, `selling_price_fen`, `variable_cost_fen` |
 | MixItem | `product: Product`, `weight` |
+| Resource | `id`, `capacity` |
+| CapacityItem | `product`, `max_units`, `resource_uses: ResourceUse[]` |
+| ResourceUse | `resource_id`, `units_per_decision` |
 
 A minimal operating-plan request:
 
@@ -46,6 +51,8 @@ A minimal operating-plan request:
 
 Amounts are fen in one common currency and cost basis; quantities are whole units of the identified product. For operating plans, every amount, target and product quantity is 0–1,000,000,000. A mix additionally requires positive selling prices, positive raw weights at most 1,000,000,000, and positive combined contribution. Planned mix volume is 0–1,000,000,000 **normalized bundles**. See the README for GCD normalization and whole-bundle target assumptions.
 
+For capacity plans, price must be positive; variable cost, fixed cost, resource capacity/use, and product maximum quantity are 0–1,000,000,000. `max_nodes` is a positive decimal string up to 250,000. Each item's `resource_uses` must contain exactly one nonnegative row per declared resource; resource and product IDs must be unique. The optimizer maximizes total product contribution subject to all resource capacities and product upper bounds, then subtracts shared fixed cost once. A product with nonpositive contribution is selected at zero because minimum quantities are not modeled. Search exhaustion is an analysis error; no unproven incumbent is returned. See [`examples/capacity-plan.json`](../examples/capacity-plan.json) for the editable three-product scenario.
+
 IDs are nonblank, already trimmed and case-sensitive. A period has at least one product; plans and mixes are nonempty. Period IDs are unique within a plan and product IDs within a period/mix. The caller defines period chronology through array order. Comparison uses budget chronology and matches exact ID sets on both sides; it does not match rows by position or infer missing data. Product sets may change between periods. To represent a newly introduced/discontinued product in a comparison, supply it on both sides with zero quantity where appropriate and explicit, meaningful price/cost assumptions.
 
 [`schema/request.schema.json`](../schema/request.schema.json) describes the structure and per-input bounds for JSON Schema editors. Cross-row uniqueness, matching sets, positive mix contribution and safe arithmetic are checked by MoonBit, not by the schema file alone.
@@ -63,6 +70,7 @@ All responses have numeric `schema_version: 1` and Boolean `ok`. On success, `re
 - **plan:** `periods`, `cumulative` and `totals`. Each period includes product detail, revenue, variable/fixed costs, contribution, operating profit, target profit and `target_gap_fen`. Each cumulative row has `id` and `totals`. The last cumulative totals equal whole-plan totals.
 - **comparison:** full evaluated `budget` and `actual` plans, `periods` containing matched results and product bridges, and aggregate `volume_effect_fen`, `price_effect_fen`, `variable_cost_effect_fen`, `fixed_cost_effect_fen`, `profit_delta_fen`. Actual period/cumulative order follows budget; detailed product arrays retain their own input order, while product effect rows follow budget order.
 - **mix:** `planned`, `break_even`, `target`. Evaluations include the normalized `profile`, per-product sales and totals. Target results include `required` and `rounding_surplus_fen`.
+- **capacity:** `products` with product identity, selected `units`, revenue, variable cost and contribution; `resources` with used/capacity totals; whole-plan revenue, variable cost, contribution, fixed cost, operating profit and explored node count.
 
 `target_gap_fen` is target minus profit: positive is shortfall, negative is excess. Profit effects are actual minus budget: positive improves profit. The declared product-quantity → price → unit variable cost → fixed cost replacement order determines interaction allocation. Quantity effects include composition changes; they do not isolate a separate pure mix effect. The bridge is an accounting decomposition, not causal proof. Profit is not cash flow.
 
@@ -86,4 +94,4 @@ Every aggregate, signed difference and bridge intermediate must fit signed Int64
 
 `detail` is diagnostic text, not a stable machine-parsing interface. MoonBit callers that need specific error branches should use `parse_request` and the typed analysis APIs. The wrapper exits **0** on success, **2** for input/analysis errors, **1** for runner failures. Toolchain diagnostics use stderr; stdout remains one response document. Direct `moon run cmd/report` reports errors through `ok:false` and may still exit 0; callers must inspect the envelope or use the wrapper.
 
-Run `node scripts/check-examples.mjs js` (or `native`) to check the three editable examples, financial bridges, numeric string output and error behavior. Unit tests additionally cover missing/unknown fields, integer boundaries, invalid pairs, losses, zero volume and overflow.
+Run `node scripts/check-examples.mjs js` (or `native`) to execute the four editable examples, verify the optimized product quantities and financial reconciliation, check the budget bridge, numeric string output and error behavior. Unit tests additionally cover missing/unknown fields, integer boundaries, invalid pairs, losses, zero volume, optimization bounds and overflow.

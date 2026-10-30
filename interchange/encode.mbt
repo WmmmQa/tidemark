@@ -133,6 +133,39 @@ fn encode_mix(value : @portfolio.MixEvaluation) -> Json {
 }
 
 ///|
+fn encode_capacity(value : @portfolio.CapacityEvaluation) -> Json {
+  {
+    "kind": "capacity",
+    "products": Json::array(
+      value.products.map(fn(item) {
+        {
+          "product": encode_product(item.product),
+          "units": amount(item.units),
+          "revenue_fen": amount(item.revenue_fen),
+          "variable_cost_fen": amount(item.variable_cost_fen),
+          "contribution_fen": amount(item.contribution_fen),
+        }
+      }),
+    ),
+    "resources": Json::array(
+      value.resources.map(fn(resource) {
+        {
+          "id": Json::string(resource.resource_id),
+          "used": amount(resource.used),
+          "capacity": amount(resource.capacity),
+        }
+      }),
+    ),
+    "revenue_fen": amount(value.revenue_fen),
+    "variable_cost_fen": amount(value.variable_cost_fen),
+    "contribution_fen": amount(value.contribution_fen),
+    "fixed_cost_fen": amount(value.fixed_cost_fen),
+    "operating_profit_fen": amount(value.operating_profit_fen),
+    "explored_nodes": amount(value.explored_nodes),
+  }
+}
+
+///|
 fn encode_target(value : @portfolio.MixTarget) -> Json {
   {
     "target_profit_fen": amount(value.target_profit_fen),
@@ -157,8 +190,8 @@ pub fn error_response(kind : String, detail : String) -> Json {
 }
 
 ///|
-/// Execute typed requests using pure analysis packages. No input files, stdout,
-/// locale or binary floating-point money conversion are involved.
+/// Execute typed requests using pure MoonBit analysis and optimization
+/// packages. No file I/O, locale or binary floating-point money conversion is involved.
 pub fn execute_request(request : Request) -> Json {
   match request {
     Plan(periods) =>
@@ -200,6 +233,11 @@ pub fn execute_request(request : Request) -> Json {
         "target": encode_target(target),
       })
     }
+    Capacity(plan, max_nodes) =>
+      match @portfolio.optimize_capacity_plan(plan, max_nodes) {
+        Ok(result) => success(encode_capacity(result))
+        Err(error) => error_response("analysis", @debug.to_string(error))
+      }
   }
 }
 
