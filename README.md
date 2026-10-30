@@ -21,6 +21,16 @@ Portfolio break-even still assumes a fixed sales mix within one period. `portfol
 
 To call these packages from another MoonBit project, follow the [local workspace integration guide](fieldbook/using-as-a-library.md). It imports all six packages and runs a separate consumer against the local source, before any Mooncakes release.
 
+## Run the core capacity optimizer
+
+Run a three-product example that calls `portfolio.optimize_capacity_plan`, backed by the bounded integer solver:
+
+```sh
+moon run cmd/capacity --target js
+```
+
+The hypothetical plan uses labor and material capacities of 12 and 10. It selects 3 meals, 3 drinks and 1 dessert, using both resources fully. The result reports revenue of 46,000 fen, variable cost of 25,900 fen, contribution of 20,100 fen and operating profit of 17,100 fen after 3,000 fen of shared fixed cost. All values are calculated by the MoonBit API; the command does not print a preset answer. See [`cmd/capacity/main.mbt`](cmd/capacity/main.mbt) for the complete input.
+
 ## Start with an editable JSON file
 
 Requires MoonBit and Node.js (CI uses Node 22). From the repository directory:

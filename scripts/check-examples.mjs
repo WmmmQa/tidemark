@@ -87,4 +87,26 @@ for (const source of [undefined, '{', '--help']) {
   assert.equal(envelope.error.kind, source === undefined ? 'usage' : 'decode');
 }
 
-console.log(`Structured examples and CLI checks passed (${target}).`);
+const capacityPlan = spawnSync(
+  'moon',
+  ['run', '--quiet', '--target', target, 'cmd/capacity'],
+  { cwd: root, encoding: 'utf8', windowsHide: true },
+);
+assert.equal(capacityPlan.error, undefined);
+assert.equal(capacityPlan.status, 0, capacityPlan.stderr);
+assert.equal(
+  capacityPlan.stdout.trimEnd(),
+  [
+    'Hypothetical product plan (money: fen)',
+    'Optimal quantities (meal,drink,dessert): 3,3,1',
+    'Revenue: 46000',
+    'Variable cost: 25900',
+    'Contribution: 20100',
+    'Shared fixed cost: 3000',
+    'Operating profit: 17100',
+    'Resource use (labor,material): 12/12,10/10',
+    'Search nodes: 34',
+  ].join('\n'),
+);
+
+console.log('Structured examples and CLI checks passed (' + target + ').');
