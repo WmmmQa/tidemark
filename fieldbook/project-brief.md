@@ -1,4 +1,4 @@
-# Tidemark — MoonBit 整数资源配置优化与经营分析库
+# Tidemark：MoonBit 多资源整数优化与经营分析库
 
 ## 需求与定位
 
