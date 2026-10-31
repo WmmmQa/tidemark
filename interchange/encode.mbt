@@ -166,6 +166,42 @@ fn encode_capacity(value : @portfolio.CapacityEvaluation) -> Json {
 }
 
 ///|
+fn encode_capacity_sensitivity(
+  value : @portfolio.CapacityResourceSensitivity,
+) -> Json {
+  {
+    "kind": "capacity_sensitivity",
+    "metric": "discrete_one_unit_capacity_change",
+    "resource_id": Json::string(value.resource_id),
+    "capacity_before": amount(value.capacity_before),
+    "capacity_after": amount(value.capacity_after),
+    "baseline": encode_capacity(value.baseline),
+    "increased_capacity": encode_capacity(value.increased_capacity),
+    "contribution_delta_fen": amount(value.contribution_delta_fen),
+    "operating_profit_delta_fen": amount(value.operating_profit_delta_fen),
+    "product_changes": Json::array(
+      value.product_changes.map(fn(change) {
+        {
+          "product_id": Json::string(change.product_id),
+          "baseline_units": amount(change.baseline_units),
+          "increased_capacity_units": amount(change.increased_capacity_units),
+          "units_delta": amount(change.units_delta),
+        }
+      }),
+    ),
+    "interpretation": Json::string(
+      "Discrete difference between two exact optima for this plan; excludes any cost of obtaining extra capacity and is not a continuous shadow price or causal estimate.",
+    ),
+    "search": {
+      "solves": 2,
+      "max_nodes_per_solve": amount(value.max_nodes_per_solve),
+      "total_node_budget": amount(value.total_node_budget),
+      "explored_nodes_total": amount(value.explored_nodes_total),
+    },
+  }
+}
+
+///|
 fn encode_target(value : @portfolio.MixTarget) -> Json {
   {
     "target_profit_fen": amount(value.target_profit_fen),
@@ -236,6 +272,12 @@ pub fn execute_request(request : Request) -> Json {
     Capacity(plan, max_nodes) =>
       match @portfolio.optimize_capacity_plan(plan, max_nodes) {
         Ok(result) => success(encode_capacity(result))
+        Err(error) => error_response("analysis", @debug.to_string(error))
+      }
+    CapacitySensitivity(plan, resource_id, max_nodes) =>
+      match
+        @portfolio.capacity_resource_sensitivity(plan, resource_id, max_nodes) {
+        Ok(result) => success(encode_capacity_sensitivity(result))
         Err(error) => error_response("analysis", @debug.to_string(error))
       }
   }

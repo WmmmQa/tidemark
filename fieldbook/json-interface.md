@@ -1,12 +1,13 @@
 # JSON interface — schema version 1
 
-`interchange` converts structured requests to pure fixed-mix, capacity-planning and multi-period APIs. `cmd/report` accepts exactly one JSON string argument and prints one JSON response. Capacity requests call `portfolio.optimize_capacity_plan`, backed by the exact `optimizer` package. The Node wrapper only reads the user file and transports its text; decoding, optimization and finance calculations run in MoonBit:
+`interchange` converts structured requests to pure fixed-mix, capacity-planning, discrete resource-sensitivity and multi-period APIs. `cmd/report` accepts exactly one JSON string argument and prints one JSON response. Capacity requests call the exact optimizer through `portfolio`; the sensitivity request calls `portfolio.capacity_resource_sensitivity`. The Node wrapper only reads the user file and transports its text; decoding, optimization and finance calculations run in MoonBit:
 
 ```sh
 node scripts/analyze.mjs examples/operating-plan.json
 node scripts/analyze.mjs examples/budget-actual.json --target js
 node scripts/analyze.mjs examples/product-mix.json --target native
 node scripts/analyze.mjs examples/capacity-plan.json
+node scripts/analyze.mjs examples/resource-value.json
 ```
 
 Copy an example and edit it. Run from the repository root. The default target is JS; native requires a C toolchain. Node 22 is used in CI. No dependencies need to be installed with npm.
@@ -23,6 +24,7 @@ Send `schema_version` as the integer literal `1`. Version dispatch compares the 
 | Comparison request | `schema_version`, `kind: "comparison"`, `budget: Period[]`, `actual: Period[]` |
 | Mix request | `schema_version`, `kind: "mix"`, `items: MixItem[]`, `fixed_cost_fen`, `planned_bundles`, `target_profit_fen` |
 | Capacity request | `schema_version`, `kind: "capacity"`, `resources: Resource[]`, `items: CapacityItem[]`, `fixed_cost_fen`, `max_nodes` |
+| Capacity sensitivity request | `schema_version`, `kind: "capacity_sensitivity"`, same capacity fields, `resource_id`, `max_nodes` |
 | Period | `id`, `products: SalesLine[]`, `fixed_cost_fen`, `target_profit_fen` |
 | SalesLine | `product: Product`, `units` |
 | Product | `id`, `selling_price_fen`, `variable_cost_fen` |
@@ -53,6 +55,8 @@ Amounts are fen in one common currency and cost basis; quantities are whole unit
 
 For capacity plans, price must be positive; variable cost, fixed cost, resource capacity/use, and product maximum quantity are 0–1,000,000,000. `max_nodes` is a positive decimal string up to 250,000. Each item's `resource_uses` must contain exactly one nonnegative row per declared resource; resource and product IDs must be unique. The optimizer maximizes total product contribution subject to all resource capacities and product upper bounds, then subtracts shared fixed cost once. A product with nonpositive contribution is selected at zero because minimum quantities are not modeled. Search exhaustion is an analysis error; no unproven incumbent is returned. See [`examples/capacity-plan.json`](../examples/capacity-plan.json) for the editable three-product scenario.
 
+A capacity-sensitivity request uses the same model plus the exact `resource_id` to increase by one. The resource must exist exactly once and its base capacity must be below 1,000,000,000. MoonBit solves the original and increased-capacity plans independently, each with the requested `max_nodes`; the total node budget is therefore `2 * max_nodes` and actual explored nodes are returned. Both searches must prove optimality. The result reports each plan, contribution/profit differences and per-product quantity changes. The delta is before any cost to obtain the extra resource; compare it with that cost before acting. It is a discrete one-unit difference for the supplied plan, not a continuous shadow price or causal forecast. [`examples/resource-value.json`](../examples/resource-value.json) contains the complete editable scenario: increasing labor from 12 to 13 changes the solution from 3/3/1 to 2/3/2 and raises profit by 1,300 fen.
+
 IDs are nonblank, already trimmed and case-sensitive. A period has at least one product; plans and mixes are nonempty. Period IDs are unique within a plan and product IDs within a period/mix. The caller defines period chronology through array order. Comparison uses budget chronology and matches exact ID sets on both sides; it does not match rows by position or infer missing data. Product sets may change between periods. To represent a newly introduced/discontinued product in a comparison, supply it on both sides with zero quantity where appropriate and explicit, meaningful price/cost assumptions.
 
 [`schema/request.schema.json`](../schema/request.schema.json) describes the structure and per-input bounds for JSON Schema editors. Cross-row uniqueness, matching sets, positive mix contribution and safe arithmetic are checked by MoonBit, not by the schema file alone.
@@ -71,6 +75,7 @@ All responses have numeric `schema_version: 1` and Boolean `ok`. On success, `re
 - **comparison:** full evaluated `budget` and `actual` plans, `periods` containing matched results and product bridges, and aggregate `volume_effect_fen`, `price_effect_fen`, `variable_cost_effect_fen`, `fixed_cost_effect_fen`, `profit_delta_fen`. Actual period/cumulative order follows budget; detailed product arrays retain their own input order, while product effect rows follow budget order.
 - **mix:** `planned`, `break_even`, `target`. Evaluations include the normalized `profile`, per-product sales and totals. Target results include `required` and `rounding_surplus_fen`.
 - **capacity:** `products` with product identity, selected `units`, revenue, variable cost and contribution; `resources` with used/capacity totals; whole-plan revenue, variable cost, contribution, fixed cost, operating profit and explored node count.
+- **capacity_sensitivity:** `baseline` and `increased_capacity` exact results, the selected resource's before/after capacities, contribution/profit deltas, product quantity changes and search budget/effort. `metric` identifies a discrete one-unit capacity difference; it is not a continuous shadow price.
 
 `target_gap_fen` is target minus profit: positive is shortfall, negative is excess. Profit effects are actual minus budget: positive improves profit. The declared product-quantity → price → unit variable cost → fixed cost replacement order determines interaction allocation. Quantity effects include composition changes; they do not isolate a separate pure mix effect. The bridge is an accounting decomposition, not causal proof. Profit is not cash flow.
 
@@ -94,4 +99,4 @@ Every aggregate, signed difference and bridge intermediate must fit signed Int64
 
 `detail` is diagnostic text, not a stable machine-parsing interface. MoonBit callers that need specific error branches should use `parse_request` and the typed analysis APIs. The wrapper exits **0** on success, **2** for input/analysis errors, **1** for runner failures. Toolchain diagnostics use stderr; stdout remains one response document. Direct `moon run cmd/report` reports errors through `ok:false` and may still exit 0; callers must inspect the envelope or use the wrapper.
 
-Run `node scripts/check-examples.mjs js` (or `native`) to execute the four editable examples, verify the optimized product quantities and financial reconciliation, check the budget bridge, numeric string output and error behavior. Unit tests additionally cover missing/unknown fields, integer boundaries, invalid pairs, losses, zero volume, optimization bounds and overflow.
+Run `node scripts/check-examples.mjs js` (or `native`) to execute the five editable examples, verify optimized product quantities, the one-unit resource comparison, financial reconciliation, budget bridge, decimal-string precision and error behavior. Unit tests additionally cover missing/unknown fields, integer boundaries, invalid pairs, losses, zero volume, optimization bounds, incomplete sensitivity searches and overflow.

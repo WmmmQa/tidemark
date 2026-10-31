@@ -51,7 +51,10 @@ fn assert_error(source : String, kind : String, detail : String) -> Unit raise {
   @debug.assert_eq(at(response, ["ok"]), Json::boolean(false))
   @debug.assert_eq(at(response, ["error", "kind"]), Json::string(kind))
   match at(response, ["error", "detail"]) {
-    String(message) => assert_true(message.contains(detail))
+    String(message) =>
+      if !message.contains(detail) {
+        abort("expected error detail containing {detail}, got {message}")
+      }
     _ => abort("expected error detail")
   }
 }
@@ -345,6 +348,19 @@ fn capacity_request(nodes : String) -> String {
 }
 
 ///|
+fn capacity_sensitivity_request(nodes : String) -> String {
+  capacity_request(nodes)
+  .replace(
+    old="\"kind\": \"capacity\"",
+    new="\"kind\": \"capacity_sensitivity\"",
+  )
+  .replace(
+    old="\"fixed_cost_fen\": \"3000\"",
+    new="\"fixed_cost_fen\": \"3000\", \"resource_id\": \"labor\"",
+  )
+}
+
+///|
 test "capacity JSON request runs the exact finance optimizer and returns a reconciled plan" {
   let response = @interchange.run_json(capacity_request("10000"))
   @debug.assert_eq(at(response, ["ok"]), Json::boolean(true))
@@ -440,5 +456,117 @@ test "capacity JSON keeps monetary output exact beyond JavaScript integer range"
   @debug.assert_eq(
     at(response, ["result", "contribution_fen"]),
     Json::string("1000000000000000000"),
+  )
+}
+
+///|
+test "capacity sensitivity JSON reports two exact plans and finite-step value" {
+  let response = @interchange.run_json(capacity_sensitivity_request("10000"))
+  @debug.assert_eq(at(response, ["ok"]), Json::boolean(true))
+  @debug.assert_eq(
+    at(response, ["result", "kind"]),
+    Json::string("capacity_sensitivity"),
+  )
+  @debug.assert_eq(
+    at(response, ["result", "metric"]),
+    Json::string("discrete_one_unit_capacity_change"),
+  )
+  @debug.assert_eq(
+    at(response, ["result", "capacity_before"]),
+    Json::string("12"),
+  )
+  @debug.assert_eq(
+    at(response, ["result", "capacity_after"]),
+    Json::string("13"),
+  )
+  @debug.assert_eq(
+    at(response, ["result", "baseline", "operating_profit_fen"]),
+    Json::string("17100"),
+  )
+  @debug.assert_eq(
+    at(response, ["result", "increased_capacity", "operating_profit_fen"]),
+    Json::string("18400"),
+  )
+  @debug.assert_eq(
+    at(response, ["result", "contribution_delta_fen"]),
+    Json::string("1300"),
+  )
+  @debug.assert_eq(
+    at(response, ["result", "operating_profit_delta_fen"]),
+    Json::string("1300"),
+  )
+  let changes = match at(response, ["result", "product_changes"]) {
+    Array(rows) => rows
+    _ => abort("expected product quantity changes")
+  }
+  @debug.assert_eq(at(changes[0], ["units_delta"]), Json::string("-1"))
+  @debug.assert_eq(at(changes[1], ["units_delta"]), Json::string("0"))
+  @debug.assert_eq(at(changes[2], ["units_delta"]), Json::string("1"))
+  @debug.assert_eq(
+    at(response, ["result", "search", "solves"]),
+    Json::number(2.0),
+  )
+  @debug.assert_eq(
+    at(response, ["result", "search", "max_nodes_per_solve"]),
+    Json::string("10000"),
+  )
+  @debug.assert_eq(
+    at(response, ["result", "search", "total_node_budget"]),
+    Json::string("20000"),
+  )
+  assert_true(
+    match at(response, ["result", "interpretation"]) {
+      String(value) => value.contains("not a continuous shadow price")
+      _ => false
+    },
+  )
+}
+
+///|
+test "capacity sensitivity JSON has typed missing duplicate limit and search errors" {
+  assert_error(
+    capacity_sensitivity_request("10000").replace(
+      old="\"resource_id\": \"labor\"",
+      new="\"resource_id\": \"missing\"",
+    ),
+    "analysis",
+    "SensitivityResourceNotFound(\"missing\")",
+  )
+  assert_error(
+    capacity_sensitivity_request("10000").replace(
+      old="{\"id\":\"material\",\"capacity\":\"10\"}",
+      new="{\"id\":\"labor\",\"capacity\":\"10\"}",
+    ),
+    "analysis",
+    "DuplicateSensitivityResourceId(\"labor\")",
+  )
+  assert_error(
+    capacity_sensitivity_request("10000").replace(
+      old="\"capacity\":\"12\"",
+      new="\"capacity\":\"1000000000\"",
+    ),
+    "analysis",
+    "SensitivityCapacityAtMaximum(\"labor\")",
+  )
+  assert_error(
+    capacity_sensitivity_request("1").replace(
+      old="\"id\":\"labor\",\"capacity\":\"12\"",
+      new="\"id\":\"labor\",\"capacity\":\"0\"",
+    ),
+    "analysis",
+    "SearchLimitExceeded(1)",
+  )
+  assert_error(
+    capacity_sensitivity_request("0"),
+    "analysis",
+    "SensitivitySearchBudgetOutOfRange",
+  )
+  assert_error(
+    capacity_sensitivity_request("10000").replace(
+      old="\"resource_id\": \"labor\"",
+      new="\"resource_id\": 9007199254740993",
+    ),
+    "decode",
+    "expected string",
   )
 }

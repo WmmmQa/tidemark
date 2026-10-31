@@ -6,7 +6,8 @@
     { "$ref": "#/$defs/PlanRequest" },
     { "$ref": "#/$defs/ComparisonRequest" },
     { "$ref": "#/$defs/MixRequest" },
-    { "$ref": "#/$defs/CapacityRequest" }
+    { "$ref": "#/$defs/CapacityRequest" },
+    { "$ref": "#/$defs/CapacitySensitivityRequest" }
   ],
   "$defs": {
     "Amount": {
@@ -151,6 +152,20 @@
         "resources": { "type": "array", "items": { "$ref": "#/$defs/Resource" } },
         "items": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/CapacityItem" } },
         "fixed_cost_fen": { "$ref": "#/$defs/Amount" },
+        "max_nodes": { "$ref": "#/$defs/SearchNodes" }
+      }
+    },
+    "CapacitySensitivityRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "kind", "resources", "items", "fixed_cost_fen", "resource_id", "max_nodes"],
+      "properties": {
+        "schema_version": { "const": 1 },
+        "kind": { "const": "capacity_sensitivity" },
+        "resources": { "type": "array", "items": { "$ref": "#/$defs/Resource" } },
+        "items": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/CapacityItem" } },
+        "fixed_cost_fen": { "$ref": "#/$defs/Amount" },
+        "resource_id": { "$ref": "#/$defs/Id" },
         "max_nodes": { "$ref": "#/$defs/SearchNodes" }
       }
     }

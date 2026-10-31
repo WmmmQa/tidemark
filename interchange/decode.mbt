@@ -230,6 +230,11 @@ fn decode_request(value : Json) -> Request raise DecodeFailure {
       [
         "schema_version", "kind", "resources", "items", "fixed_cost_fen", "max_nodes",
       ]
+    "capacity_sensitivity" =>
+      [
+        "schema_version", "kind", "resources", "items", "fixed_cost_fen", "resource_id",
+        "max_nodes",
+      ]
     _ => return invalid("$.kind", "unsupported request kind")
   }
   let fields = object_fields(value, "$", allowed)
@@ -266,7 +271,7 @@ fn decode_request(value : Json) -> Request raise DecodeFailure {
         integer(field(fields, "target_profit_fen"), "$.target_profit_fen"),
       )
     }
-    _ =>
+    "capacity" =>
       Capacity(
         {
           resources: resources(field(fields, "resources"), "$.resources"),
@@ -276,6 +281,19 @@ fn decode_request(value : Json) -> Request raise DecodeFailure {
             "$.fixed_cost_fen",
           ),
         },
+        integer(field(fields, "max_nodes"), "$.max_nodes"),
+      )
+    _ =>
+      CapacitySensitivity(
+        {
+          resources: resources(field(fields, "resources"), "$.resources"),
+          items: capacity_items(field(fields, "items"), "$.items"),
+          fixed_cost_fen: integer(
+            field(fields, "fixed_cost_fen"),
+            "$.fixed_cost_fen",
+          ),
+        },
+        text(field(fields, "resource_id"), "$.resource_id"),
         integer(field(fields, "max_nodes"), "$.max_nodes"),
       )
   }

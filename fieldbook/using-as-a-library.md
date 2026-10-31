@@ -190,6 +190,24 @@ fn main {
     }
     Err(_) => println("Capacity-constrained product plan could not be solved")
   }
+  let tighter_plan : @portfolio.CapacityPlan = {
+    ..capacity_plan,
+    resources: [
+      @optimizer.Resource::{ id: "labor", capacity: 4L },
+      @optimizer.Resource::{ id: "material", capacity: 4L },
+    ],
+  }
+  match
+    @portfolio.capacity_resource_sensitivity(
+      tighter_plan,
+      "labor",
+      100L,
+    ) {
+    Ok(result) => println(
+    "One labor unit's discrete profit difference before added labor cost (fen): \{result.operating_profit_delta_fen}",
+    )
+    Err(_) => println("Resource sensitivity could not prove both optima")
+  }
   let product : @portfolio.Product = {
     id: "meal",
     selling_price_fen: 8000L,
@@ -248,6 +266,7 @@ Project choices (A,B,C): 1,0,1
 Capacity product units (meal,drink): 2,1
 Capacity contribution/profit (fen): 8400/5400
 Capacity use (labor,material): 5,4
+One labor unit's discrete profit difference before added labor cost (fen): 2000
 Single-product break-even units: 500
 Portfolio break-even bundles: 500
 Target gap (fen): 160000
@@ -256,4 +275,4 @@ Invalid JSON request rejected
 
 The native command checks the packages; executing the native target additionally requires a C toolchain. The calculation APIs take typed MoonBit values and do not require Node.js. Node.js is used for the JS backend and for the separate file wrapper described in the README.
 
-Applications can import fewer packages and replace this illustrative error handling with their own messages. Handle `AllocationError`, `CapacityPlanError`, `MixError`, `PlanError` and `DecodeError` explicitly when calling their corresponding APIs; input units and model limits remain those documented in the README and JSON interface.
+Applications can import fewer packages and replace this illustrative error handling with their own messages. Capacity-resource sensitivity re-runs the exact optimizer at the base and increased capacity; it compares two proven optima and does not return an incumbent if either search reaches its node limit. The delta is before any cost of obtaining the added capacity and is a discrete one-step scenario result, not a continuous shadow price. Handle `AllocationError`, `CapacityPlanError`, `CapacitySensitivityError`, `MixError`, `PlanError` and `DecodeError` explicitly when calling their corresponding APIs; input units and model limits remain those documented in the README and JSON interface.

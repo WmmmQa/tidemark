@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "kind": "capacity_sensitivity",
+  "resource_id": "labor",
+  "resources": [
+    { "id": "labor", "capacity": "12" },
+    { "id": "material", "capacity": "10" }
+  ],
+  "items": [
+    {
+      "product": { "id": "meal", "selling_price_fen": "8000", "variable_cost_fen": "4800" },
+      "max_units": "5",
+      "resource_uses": [
+        { "resource_id": "labor", "units_per_decision": "2" },
+        { "resource_id": "material", "units_per_decision": "1" }
+      ]
+    },
+    {
+      "product": { "id": "drink", "selling_price_fen": "5000", "variable_cost_fen": "3000" },
+      "max_units": "5",
+      "resource_uses": [
+        { "resource_id": "labor", "units_per_decision": "1" },
+        { "resource_id": "material", "units_per_decision": "2" }
+      ]
+    },
+    {
+      "product": { "id": "dessert", "selling_price_fen": "7000", "variable_cost_fen": "2500" },
+      "max_units": "4",
+      "resource_uses": [
+        { "resource_id": "labor", "units_per_decision": "3" },
+        { "resource_id": "material", "units_per_decision": "1" }
+      ]
+    }
+  ],
+  "fixed_cost_fen": "3000",
+  "max_nodes": "10000"
+}

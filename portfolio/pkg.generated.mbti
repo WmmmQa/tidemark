@@ -11,6 +11,8 @@ pub const MAX_INPUT_AMOUNT_FEN : Int64 = 1_000_000_000
 
 pub const MAX_INPUT_QUANTITY : Int64 = 1_000_000_000
 
+pub fn capacity_resource_sensitivity(CapacityPlan, String, Int64) -> Result[CapacityResourceSensitivity, CapacitySensitivityError]
+
 pub fn compare_mixes(MixPlan, Int64, MixPlan, Int64) -> Result[MixComparison, MixError]
 
 pub fn describe_mix(MixPlan) -> Result[MixProfile, MixError]
@@ -73,6 +75,16 @@ pub fn CapacityPlanError::equal(Self, Self) -> Bool
 pub fn CapacityPlanError::not_equal(Self, Self) -> Bool
 pub fn CapacityPlanError::to_repr(Self) -> @debug.Repr
 
+pub(all) struct CapacityProductQuantityChange {
+  product_id : String
+  baseline_units : Int64
+  increased_capacity_units : Int64
+  units_delta : Int64
+} derive(Eq, @debug.Debug)
+pub fn CapacityProductQuantityChange::equal(Self, Self) -> Bool
+pub fn CapacityProductQuantityChange::not_equal(Self, Self) -> Bool
+pub fn CapacityProductQuantityChange::to_repr(Self) -> @debug.Repr
+
 pub(all) struct CapacityProductSales {
   product : Product
   units : Int64
@@ -83,6 +95,44 @@ pub(all) struct CapacityProductSales {
 pub fn CapacityProductSales::equal(Self, Self) -> Bool
 pub fn CapacityProductSales::not_equal(Self, Self) -> Bool
 pub fn CapacityProductSales::to_repr(Self) -> @debug.Repr
+
+pub(all) struct CapacityResourceSensitivity {
+  resource_id : String
+  capacity_before : Int64
+  capacity_after : Int64
+  baseline : CapacityEvaluation
+  increased_capacity : CapacityEvaluation
+  contribution_delta_fen : Int64
+  operating_profit_delta_fen : Int64
+  product_changes : Array[CapacityProductQuantityChange]
+  max_nodes_per_solve : Int64
+  total_node_budget : Int64
+  explored_nodes_total : Int64
+} derive(Eq, @debug.Debug)
+pub fn CapacityResourceSensitivity::equal(Self, Self) -> Bool
+pub fn CapacityResourceSensitivity::not_equal(Self, Self) -> Bool
+pub fn CapacityResourceSensitivity::to_repr(Self) -> @debug.Repr
+
+pub(all) enum CapacitySensitivityError {
+  InvalidSensitivityResourceId
+  SensitivityResourceNotFound(String)
+  DuplicateSensitivityResourceId(String)
+  SensitivityCapacityAtMaximum(String)
+  SensitivitySearchBudgetOutOfRange
+  SensitivityPlanFailure(CapacitySensitivityStage, CapacityPlanError)
+  SensitivityDifferenceOverflow(String)
+} derive(Eq, @debug.Debug)
+pub fn CapacitySensitivityError::equal(Self, Self) -> Bool
+pub fn CapacitySensitivityError::not_equal(Self, Self) -> Bool
+pub fn CapacitySensitivityError::to_repr(Self) -> @debug.Repr
+
+pub(all) enum CapacitySensitivityStage {
+  Baseline
+  IncreasedCapacity
+} derive(Eq, @debug.Debug)
+pub fn CapacitySensitivityStage::equal(Self, Self) -> Bool
+pub fn CapacitySensitivityStage::not_equal(Self, Self) -> Bool
+pub fn CapacitySensitivityStage::to_repr(Self) -> @debug.Repr
 
 pub(all) struct MixComparison {
   baseline : MixEvaluation

@@ -22,7 +22,11 @@ function runFile(name, status = 0) {
 function checkPrecision(value) {
   if (!value || typeof value !== 'object') return;
   for (const [key, child] of Object.entries(value)) {
-    if (key.endsWith('_fen') || ['units', 'weight', 'planned_bundles'].includes(key)) {
+    if (key.endsWith('_fen') || key.endsWith('_units') || [
+      'units', 'units_delta', 'weight', 'planned_bundles', 'capacity_before',
+      'capacity_after', 'max_nodes_per_solve', 'total_node_budget',
+      'explored_nodes_total',
+    ].includes(key)) {
       assert.equal(typeof child, 'string', `${key} must preserve integer precision`);
       assert.match(child, /^(0|-?[1-9][0-9]*)$/);
     }
@@ -86,6 +90,28 @@ assert.deepEqual(capacity.resources.map(row => [row.id, row.used, row.capacity])
 ]);
 assert.equal(Number(capacity.explored_nodes) > 0, true);
 checkPrecision(capacity);
+
+const resourceValue = runFile('examples/resource-value.json').result;
+assert.equal(resourceValue.kind, 'capacity_sensitivity');
+assert.equal(resourceValue.metric, 'discrete_one_unit_capacity_change');
+assert.equal(resourceValue.resource_id, 'labor');
+assert.equal(resourceValue.capacity_before, '12');
+assert.equal(resourceValue.capacity_after, '13');
+assert.deepEqual(resourceValue.baseline.products.map(row => row.units), ['3', '3', '1']);
+assert.deepEqual(resourceValue.increased_capacity.products.map(row => row.units), ['2', '3', '2']);
+assert.equal(resourceValue.baseline.operating_profit_fen, '17100');
+assert.equal(resourceValue.increased_capacity.operating_profit_fen, '18400');
+assert.equal(resourceValue.contribution_delta_fen, '1300');
+assert.equal(resourceValue.operating_profit_delta_fen, '1300');
+assert.deepEqual(resourceValue.product_changes.map(row => row.units_delta), ['-1', '0', '1']);
+assert.equal(resourceValue.search.solves, 2);
+assert.equal(resourceValue.search.max_nodes_per_solve, '10000');
+assert.equal(resourceValue.search.total_node_budget, '20000');
+assert.equal(
+  resourceValue.interpretation.includes('not a continuous shadow price'),
+  true,
+);
+checkPrecision(resourceValue);
 
 assert.equal(runFile('examples/invalid-units.json', 2).error.kind, 'analysis');
 assert.equal(runFile('examples/invalid-schema.json', 2).error.kind, 'decode');
