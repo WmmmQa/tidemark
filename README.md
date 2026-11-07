@@ -1,12 +1,39 @@
 # Tidemark
 
-**A MoonBit bounded integer resource optimizer with management-accounting applications.**
+**A MoonBit runtime for exact, incremental reconciliation of integer worksheets.**
+
+Write inputs, named formulas and equality checks in a text file. The runtime
+compiles the dependency graph once, evaluates each scenario against that graph,
+and returns a new snapshot only when every calculation and check succeeds.
+An edit reevaluates formulas and checks fed by changed values. Unknown names,
+cycles, arithmetic errors and failed checks report a source location.
+
+**November scope.** The new `worksheet` package has no dependency on the
+October optimizer or finance packages. The budget bridge and meter balance
+exercise the same language and runtime. The repository was first submitted
+in October and did not pass initial review. The earlier optimization and
+accounting features remain available below.
+
+### Verify the November work
+
+```powershell
+$model = Get-Content -Raw examples/budget-reconcile.worksheet
+moon run --target js cmd/reconcile -- $model units=85 actual_price=7500 actual_cost=4900 actual_fixed=120000 budget_units=100 budget_price=8000 budget_cost=4800 budget_fixed=100000 --edit actual_fixed=110000
+moon test worksheet --target js --deny-warn
+```
+
+The initial profit bridge is −119,000 fen. Changing only actual fixed cost
+to 110,000 fen makes it −109,000 fen and executes 4 of the 8 formulas and
+checks. The [worksheet guide](fieldbook/worksheet.md) includes a failing
+meter check, the language contract and the library API.
+
+## October foundation
 
 Tidemark solves bounded integer allocation problems under scarce-resource limits, then provides management-accounting APIs for explaining the resulting plans. The optimizer is a reusable algorithmic core for production mix, project selection and other finite resource-allocation problems; the other packages cover contribution analysis, multi-period plans and budget-to-actual profit bridges. All calculation APIs are pure MoonBit and can be used without the command-line wrappers.
 
 MoonBit also has broader LP/MIP tooling such as [moonopt](https://mooncakes.io/docs/Freon793/moonopt@0.4.0), which supports standard model formats and general integer-programming workflows. Tidemark focuses on a bounded resource model with a finance-facing API: product prices, variable costs, shared capacities and fixed costs produce whole-unit allocations and reconciled contribution/profit details.
 
-## Packages and current scope
+### Existing packages
 
 | Import | Reusable functionality |
 | --- | --- |
@@ -19,7 +46,7 @@ MoonBit also has broader LP/MIP tooling such as [moonopt](https://mooncakes.io/d
 
 Portfolio break-even still assumes a fixed sales mix within one period. `portfolio.optimize_capacity_plan` uses the separate `optimizer` package to select product quantities without a fixed ratio, then reconciles revenue, variable cost, contribution and shared fixed cost. `portfolio.capacity_resource_sensitivity` resolves the plan twice to compare the current capacity with one additional unit; it reports a discrete plan-specific difference before any cost to obtain extra capacity, not a continuous shadow price. Operating plans can vary products and costs by period. The library does not forecast demand, manage inventory, calculate tax or accounting statements, or treat operating profit as cash flow.
 
-To call these packages from another MoonBit project, follow the [local workspace integration guide](fieldbook/using-as-a-library.md). It imports all six packages and runs a separate consumer against the local source, before any Mooncakes release.
+To call these packages from another MoonBit project, follow the [local workspace integration guide](fieldbook/using-as-a-library.md). A separate consumer imports the six October packages and the new worksheet runtime from local source.
 
 ## Run the core capacity optimizer
 
@@ -209,7 +236,7 @@ For `budget-actual.json`, total effects are −116,000 fen for product quantitie
 
 ## Development and verification
 
-Requires the MoonBit toolchain. CI pins compiler `0.10.15+943464bfa`.
+Requires the MoonBit toolchain. CI pins compiler `0.10.20+65efd5b93`.
 
 ```sh
 moon fmt
@@ -222,7 +249,7 @@ node scripts/check-examples.mjs js
 node scripts/check-library-consumer.mjs js
 ```
 
-On Windows without MSVC, run the JS test and execution commands locally; `moon check --target native --deny-warn` still checks native packages, while native execution requires a C toolchain. GitHub Actions on Ubuntu checks formatting, generated interfaces, native compilation and tests, financial examples, structured file workflows, and a two-module consumer importing all six public packages on native and JS targets. Tests cover allocation optima against exhaustive small grids, multiple resource limits, deterministic ties, search exhaustion and overflow, alongside CVP, portfolio, multi-period, reconciliation and JSON boundaries. The example checker also verifies CLI output, error codes and profit bridges using `BigInt`.
+On Windows without MSVC, run the JS test and execution commands locally. Native execution requires a C toolchain. The Ubuntu workflow checks formatting, generated interfaces, native and JS tests, the reconciliation CLI and a two-module library consumer. Regression tests cover worksheet dependencies and rollback, allocation optima against exhaustive small grids, and financial and JSON boundaries. The financial example checker verifies profit bridges using `BigInt`.
 
 The commands consume the libraries; optimization code lives in `optimizer/`, management-accounting calculations in `domain/`, `engine/`, `portfolio/` and `planning/`, and financial JSON handling in `interchange/`. Scenarios, algorithm limits and design choices are in [`fieldbook/project-brief.md`](fieldbook/project-brief.md). Mooncakes publishing has not been performed; see [`fieldbook/release-checklist.md`](fieldbook/release-checklist.md) when preparing a release.
 

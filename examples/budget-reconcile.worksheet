@@ -1,0 +1,17 @@
+# Amounts in fen. Statement order is independent of calculation order.
+check actual - budget == bridge
+let bridge = volume_effect + price_effect + variable_effect + fixed_effect
+let actual = units * (actual_price - actual_cost) - actual_fixed
+let budget = budget_units * (budget_price - budget_cost) - budget_fixed
+let volume_effect = (units - budget_units) * (budget_price - budget_cost)
+let price_effect = (actual_price - budget_price) * units
+let variable_effect = (budget_cost - actual_cost) * units
+let fixed_effect = budget_fixed - actual_fixed
+input units
+input actual_price
+input actual_cost
+input actual_fixed
+input budget_units
+input budget_price
+input budget_cost
+input budget_fixed

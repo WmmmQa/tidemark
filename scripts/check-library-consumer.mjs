@@ -12,6 +12,7 @@ assert.ok(targets.every(target => ['native', 'js'].includes(target)), 'targets m
 assert.equal(new Set(targets).size, targets.length, 'targets must be unique');
 
 const guide = await readFile(resolve(root, 'fieldbook/using-as-a-library.md'), 'utf8');
+const packages = ['domain', 'engine', 'portfolio', 'planning', 'interchange', 'optimizer', 'worksheet'];
 
 function documentedBlockAfter(label) {
   const marker = guide.indexOf(label);
@@ -26,7 +27,7 @@ const consumerModule = documentedBlockAfter('Create `consumer/moon.mod`:');
 const consumerPackage = documentedBlockAfter('Create `consumer/moon.pkg`:');
 const consumerSource = documentedBlockAfter('Create `consumer/main.mbt`:');
 const expectedOutput = documentedBlockAfter('Expected stdout:').trimEnd();
-for (const packageName of ['domain', 'engine', 'portfolio', 'planning', 'interchange', 'optimizer']) {
+for (const packageName of packages) {
   assert.ok(consumerPackage.includes(`"WmmmQa/tidemark/${packageName}"`), `consumer must import ${packageName}`);
 }
 
@@ -66,7 +67,7 @@ try {
   await cp(resolve(root, 'moon.mod'), join(moduleRoot, 'moon.mod'));
   await cp(resolve(root, 'moon.pkg'), join(moduleRoot, 'moon.pkg'));
 
-  for (const packageName of ['domain', 'engine', 'portfolio', 'planning', 'interchange', 'optimizer']) {
+  for (const packageName of packages) {
     const sourcePackage = resolve(root, packageName);
     const targetPackage = join(moduleRoot, packageName);
     await mkdir(targetPackage);

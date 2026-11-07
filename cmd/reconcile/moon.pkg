@@ -1,0 +1,7 @@
+import {
+  "moonbitlang/core/env",
+  "moonbitlang/core/string",
+  "WmmmQa/tidemark/worksheet",
+}
+
+pkgtype(kind: "executable")

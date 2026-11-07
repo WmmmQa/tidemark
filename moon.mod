@@ -20,6 +20,8 @@ repository = "https://github.com/WmmmQa/tidemark"
 license = "Apache-2.0"
 
 keywords = [
+  "formula-runtime",
+  "incremental-recalculation",
   "integer-optimization",
   "resource-allocation",
   "cost-volume-profit",
@@ -31,4 +33,4 @@ keywords = [
 
 preferred_target = "native"
 
-description = "MoonBit bounded integer resource optimization with contribution planning and budget variance analysis."
+description = "Exact incremental worksheet evaluation and operating-plan analysis in MoonBit."

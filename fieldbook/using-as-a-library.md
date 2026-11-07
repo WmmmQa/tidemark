@@ -1,6 +1,6 @@
 # Use Tidemark from another MoonBit project
 
-Tidemark is currently distributed as source. Use a MoonBit workspace to resolve the module locally, then import only the packages your application needs. The `optimizer` package handles bounded integer resource allocation; the management-accounting packages provide reusable scenario calculations. Mooncakes publication is not needed for this workflow.
+Tidemark is currently distributed as source. Use a MoonBit workspace to resolve the module locally, then import only the packages your application needs. The `worksheet` package evaluates exact integer formulas and checks. The `optimizer` and accounting packages provide resource allocation and scenario calculations.
 
 ## 1. Prepare sibling modules
 
@@ -26,6 +26,7 @@ tidemark-workspace/
     planning/
     interchange/
     optimizer/
+    worksheet/
   consumer/
     moon.mod
     moon.pkg
@@ -61,6 +62,7 @@ import {
   "WmmmQa/tidemark/planning",
   "WmmmQa/tidemark/interchange",
   "WmmmQa/tidemark/optimizer",
+  "WmmmQa/tidemark/worksheet",
 }
 pkgtype(kind: "executable")
 ```
@@ -68,7 +70,11 @@ pkgtype(kind: "executable")
 Create `consumer/main.mbt`:
 
 ```moonbit
-fn main {
+fn main raise {
+  let model = "input count\nlet doubled = count * 2\ncheck doubled / 2 == count"
+  let initial = @worksheet.compile(model).evaluate({ "count": 6L })
+  let edited = initial.update({ "count": 8L })
+  println("Worksheet before/after: \{initial.value("doubled").unwrap()}/\{edited.value("doubled").unwrap()}")
   let allocation : @optimizer.AllocationProblem = {
     resources: [
       { id: "labor", capacity: 10L },
@@ -259,6 +265,7 @@ moon run --target js .
 Expected stdout:
 
 ```text
+Worksheet before/after: 12/16
 Optimal allocation value: 18
 Kit quantity: 2
 Project portfolio value (fen): 14500000

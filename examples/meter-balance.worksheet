@@ -1,0 +1,7 @@
+# Integer watt-hours from three meters.
+check delivered == branch_a + branch_b
+let delivered = closing - opening
+input opening
+input closing
+input branch_a
+input branch_b
