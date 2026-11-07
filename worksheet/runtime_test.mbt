@@ -103,13 +103,72 @@ test "bindings require all inputs and do not override formulas" {
   )
   let snapshot = program.evaluate({ "value": 2L })
   expect_fault(
-    () => ignore(program.evaluate({ "value": 2L, "total": 3L })),
+    () => ignore(snapshot.update({ "total": 3L })),
     InvalidBinding,
     2,
     1,
     "total",
   )
   @debug.assert_eq(snapshot.value("total"), Some(2L))
+}
+
+///|
+test "batch update compares against a fresh run across a grid" {
+  let source =
+    #|let sink = left + right + left
+    #|let left = x * 2
+    #|let right = (x + y) * 3
+    #|let separate = z * z
+    #|check sink == x * 4 + (x + y) * 3
+    #|input x
+    #|input y
+    #|input z
+  let program = @worksheet.compile(source)
+  let baseline = program.evaluate({ "x": 0L, "y": 0L, "z": 5L })
+  for x in -3..<4 {
+    for y in -3..<4 {
+      let updated = baseline.update({ "x": x.to_int64(), "y": y.to_int64() })
+      let fresh = program.evaluate({
+        "x": x.to_int64(),
+        "y": y.to_int64(),
+        "z": 5L,
+      })
+      @debug.assert_eq(updated.entries(), fresh.entries())
+      assert_true(updated.evaluated_count() < fresh.evaluated_count())
+    }
+  }
+  @debug.assert_eq(baseline.value("sink"), Some(0L))
+}
+
+///|
+test "unchanged values stop propagation and no-op updates do zero work" {
+  let program = @worksheet.compile(
+    "input x\nlet zero = x - x\nlet result = zero + 3\ncheck result == 3",
+  )
+  let baseline = program.evaluate({ "x": 1L })
+  let updated = baseline.update({ "x": 2L })
+  @debug.assert_eq(updated.evaluated_count(), 1)
+  @debug.assert_eq(updated.update({ "x": 2L }).evaluated_count(), 0)
+  @debug.assert_eq(updated.value("result"), Some(3L))
+}
+
+///|
+test "invalid edit leaves the previous snapshot usable" {
+  let program = @worksheet.compile(
+    "input a\ninput b\nlet double = a * 2\ncheck double == b",
+  )
+  let baseline = program.evaluate({ "a": 2L, "b": 4L })
+  expect_fault(
+    () => ignore(baseline.update({ "a": 3L })),
+    CheckFailed,
+    4,
+    14,
+    "6 != 4",
+  )
+  @debug.assert_eq(baseline.value("double"), Some(4L))
+  let accepted = baseline.update({ "a": 3L, "b": 6L })
+  @debug.assert_eq(accepted.value("double"), Some(6L))
+  @debug.assert_eq(accepted.evaluated_count(), 2)
 }
 
 ///|
@@ -206,4 +265,21 @@ test "source, statement and nesting limits fail without evaluating" {
     42,
     "expression nesting exceeds 32",
   )
+}
+
+///|
+test "reverse-declared chain reaches the statement limit and supports successive edits" {
+  let lines = []
+  for index = 511; index > 0; index = index - 1 {
+    lines.push("let v\{index} = v\{index - 1} + 1")
+  }
+  lines.push("input v0")
+  let program = @worksheet.compile(lines.join("\n"))
+  let base = program.evaluate({ "v0": 0L })
+  let next = base.update({ "v0": 10L })
+  let last = next.update({ "v0": -10L })
+  @debug.assert_eq(base.value("v511"), Some(511L))
+  @debug.assert_eq(next.value("v511"), Some(521L))
+  @debug.assert_eq(last.value("v511"), Some(501L))
+  @debug.assert_eq(last.evaluated_count(), 511)
 }

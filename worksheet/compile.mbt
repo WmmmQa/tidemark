@@ -115,5 +115,5 @@ pub fn compile(source : String) -> Program raise Fault {
   let dependents = Array::makei(parsed.length(), _ => [])
   let rows = link(parsed, names, dependencies, dependents)
   let order = schedule(rows, dependencies, dependents)
-  { rows, names, order, }
+  { rows, names, order, dependents, }
 }

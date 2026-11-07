@@ -56,6 +56,7 @@ pub struct Snapshot {
 }
 pub fn Snapshot::entries(Self) -> Array[(String, Int64)]
 pub fn Snapshot::evaluated_count(Self) -> Int32
+pub fn Snapshot::update(Self, Map[String, Int64]) -> Self raise Fault
 pub fn Snapshot::value(Self, String) -> Int64?
 
 // Type aliases

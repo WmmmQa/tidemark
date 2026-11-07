@@ -58,6 +58,40 @@ pub fn Program::evaluate(
 }
 
 ///|
+/// Apply edits atomically. A failure leaves the old snapshot usable.
+pub fn Snapshot::update(
+  self : Snapshot,
+  edits : Map[String, Int64],
+) -> Snapshot raise Fault {
+  let program = self.program
+  let values = self.values.copy()
+  let dirty = Array::make(values.length(), false)
+  for name, value in edits {
+    let slot = program.input_slot(name)
+    if values[slot] != value {
+      values[slot] = value
+      for follower in program.dependents[slot] {
+        dirty[follower] = true
+      }
+    }
+  }
+  let mut evaluated = 0
+  for slot in program.order {
+    if dirty[slot] {
+      let value = run_row(program.rows[slot], values)
+      evaluated += 1
+      if value != values[slot] {
+        values[slot] = value
+        for follower in program.dependents[slot] {
+          dirty[follower] = true
+        }
+      }
+    }
+  }
+  { program, values, evaluated, }
+}
+
+///|
 /// Read an input or formula by name. Checks do not introduce names.
 pub fn Snapshot::value(self : Snapshot, name : String) -> Int64? {
   self.program.names.get(name).map(slot => self.values[slot])

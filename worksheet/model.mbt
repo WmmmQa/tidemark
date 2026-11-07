@@ -100,6 +100,7 @@ pub struct Program {
   priv rows : Array[Row[Int32]]
   priv names : Map[String, Int32]
   priv order : Array[Int32]
+  priv dependents : Array[Array[Int32]]
 }
 
 ///|
