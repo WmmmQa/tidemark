@@ -1,49 +1,55 @@
 ///|
 /// One identifiable product. Money is integer fen, excluding tax.
 /// A loss-making product is allowed within a positive-contribution mix.
+#derive(Eq, Debug)
 pub(all) struct Product {
   id : String
   selling_price_fen : Int64
   variable_cost_fen : Int64
-} derive(Eq, Debug)
+}
 
 ///|
 /// Positive integer sales ratio, not a percentage or a forecast.
+#derive(Eq, Debug)
 pub(all) struct MixItem {
   product : Product
   weight : Int64
-} derive(Eq, Debug)
+}
 
 ///|
 /// Fixed product mix and shared fixed costs for one operating period.
+#derive(Eq, Debug)
 pub(all) struct MixPlan {
   items : Array[MixItem]
   fixed_cost_fen : Int64
-} derive(Eq, Debug)
+}
 
 ///|
 /// Validated mix with weights divided by their greatest common divisor.
 /// A bundle is one complete normalized sales mix, not one physical item.
+#derive(Eq, Debug)
 pub(all) struct MixProfile {
   items : Array[MixItem]
   fixed_cost_fen : Int64
   bundle_revenue_fen : Int64
   bundle_variable_cost_fen : Int64
   bundle_contribution_fen : Int64
-} derive(Eq, Debug)
+}
 
 ///|
 /// Product-level sales underlying a portfolio total.
+#derive(Eq, Debug)
 pub(all) struct ProductSales {
   product : Product
   units : Int64
   revenue_fen : Int64
   variable_cost_fen : Int64
   contribution_fen : Int64
-} derive(Eq, Debug)
+}
 
 ///|
 /// Revenue less variable costs less shared fixed cost, charged once.
+#derive(Eq, Debug)
 pub(all) struct MixEvaluation {
   profile : MixProfile
   planned_bundles : Int64
@@ -52,20 +58,22 @@ pub(all) struct MixEvaluation {
   variable_cost_fen : Int64
   contribution_fen : Int64
   operating_profit_fen : Int64
-} derive(Eq, Debug)
+}
 
 ///|
 /// Minimum whole bundles reaching a nonnegative operating-profit target.
 /// Surplus is the profit above target caused by buying whole bundles.
+#derive(Eq, Debug)
 pub(all) struct MixTarget {
   target_profit_fen : Int64
   required : MixEvaluation
   rounding_surplus_fen : Int64
-} derive(Eq, Debug)
+}
 
 ///|
 /// Financial changes are comparable even when bundle definitions differ.
 /// Quantities remain in the two evaluations; there is no bundle-count delta.
+#derive(Eq, Debug)
 pub(all) struct MixComparison {
   baseline : MixEvaluation
   alternative : MixEvaluation
@@ -74,11 +82,12 @@ pub(all) struct MixComparison {
   fixed_cost_delta_fen : Int64
   contribution_delta_fen : Int64
   operating_profit_delta_fen : Int64
-} derive(Eq, Debug)
+}
 
 ///|
 /// Validation or arithmetic failure. Product indices are zero-based.
 /// Overflow includes the operation name; no partial numeric result is returned.
+#derive(Eq, Debug)
 pub(all) enum MixError {
   EmptyMix
   InvalidProductId(Int32)
@@ -91,7 +100,7 @@ pub(all) enum MixError {
   PlannedBundlesOutOfRange
   NonPositiveMixContribution
   Overflow(String)
-} derive(Eq, Debug)
+}
 
 ///|
 /// Maximum for each input money amount, in fen (10 million yuan).

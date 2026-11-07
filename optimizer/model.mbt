@@ -1,58 +1,66 @@
 ///|
 /// A scarce resource with a nonnegative capacity, such as labor hours or stock.
+#derive(Eq, Debug)
 pub(all) struct Resource {
   id : String
   capacity : Int64
-} derive(Eq, Debug)
+}
 
 ///|
 /// Resource consumption for one unit of a decision.
+#derive(Eq, Debug)
 pub(all) struct ResourceUse {
   resource_id : String
   units_per_decision : Int64
-} derive(Eq, Debug)
+}
 
 ///|
 /// A bounded integer decision. Objective values and resource quantities must
 /// be nonnegative; zero units are always feasible.
+#derive(Eq, Debug)
 pub(all) struct Decision {
   id : String
   value_per_unit : Int64
   max_units : Int64
   resource_uses : Array[ResourceUse]
-} derive(Eq, Debug)
+}
 
 ///|
 /// Maximize total value subject to every resource limit and decision bound.
 /// Each decision must specify exactly one use for every declared resource.
+#derive(Eq, Debug)
 pub(all) struct AllocationProblem {
   resources : Array[Resource]
   decisions : Array[Decision]
-} derive(Eq, Debug)
+}
 
 ///|
+#derive(Eq, Debug)
 pub(all) struct DecisionQuantity {
   decision_id : String
   units : Int64
-} derive(Eq, Debug)
+}
 
 ///|
+#derive(Eq, Debug)
 pub(all) struct ResourceTotal {
   resource_id : String
   used : Int64
   capacity : Int64
-} derive(Eq, Debug)
+}
 
 ///|
 /// Exact optimal solution. Ties are resolved deterministically in input order.
+#derive(Eq, Debug)
 pub(all) struct AllocationSolution {
   total_value : Int64
   decisions : Array[DecisionQuantity]
   resources : Array[ResourceTotal]
   explored_nodes : Int64
-} derive(Eq, Debug)
+}
 
 ///|
+#derive(Eq, Debug)
 pub(all) enum AllocationError {
   EmptyDecisions
   TooManyDecisions
@@ -71,7 +79,7 @@ pub(all) enum AllocationError {
   SearchLimitOutOfRange
   SearchLimitExceeded(Int64)
   ObjectiveOverflow
-} derive(Eq, Debug)
+}
 
 ///|
 pub const MAX_INPUT_COEFFICIENT : Int64 = 1_000_000_000L

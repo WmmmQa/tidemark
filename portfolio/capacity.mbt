@@ -1,31 +1,35 @@
 ///|
 /// A product with an independently chosen bounded quantity and resource use.
+#derive(Eq, Debug)
 pub(all) struct CapacityItem {
   product : Product
   max_units : Int64
   resource_uses : Array[@optimizer.ResourceUse]
-} derive(Eq, Debug)
+}
 
 ///|
 /// Product contribution plan under shared resource capacities and fixed cost.
+#derive(Eq, Debug)
 pub(all) struct CapacityPlan {
   items : Array[CapacityItem]
   resources : Array[@optimizer.Resource]
   fixed_cost_fen : Int64
-} derive(Eq, Debug)
+}
 
 ///|
 /// Financial detail for one product selected by a capacity plan.
+#derive(Eq, Debug)
 pub(all) struct CapacityProductSales {
   product : Product
   units : Int64
   revenue_fen : Int64
   variable_cost_fen : Int64
   contribution_fen : Int64
-} derive(Eq, Debug)
+}
 
 ///|
 /// Optimized product mix, reconciled to revenue, contribution and profit.
+#derive(Eq, Debug)
 pub(all) struct CapacityEvaluation {
   products : Array[CapacityProductSales]
   resources : Array[@optimizer.ResourceTotal]
@@ -35,9 +39,10 @@ pub(all) struct CapacityEvaluation {
   fixed_cost_fen : Int64
   operating_profit_fen : Int64
   explored_nodes : Int64
-} derive(Eq, Debug)
+}
 
 ///|
+#derive(Eq, Debug)
 pub(all) enum CapacityPlanError {
   EmptyCapacityPlan
   InvalidCapacityProductId(Int32)
@@ -48,7 +53,7 @@ pub(all) enum CapacityPlanError {
   CapacityFixedCostOutOfRange
   AllocationFailure(@optimizer.AllocationError)
   CapacityOverflow(String)
-} derive(Eq, Debug)
+}
 
 ///|
 /// Choose product quantities that maximize total contribution under shared

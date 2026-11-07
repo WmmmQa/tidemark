@@ -28,6 +28,7 @@ pub fn optimize_capacity_plan(CapacityPlan, Int64) -> Result[CapacityEvaluation,
 // Errors
 
 // Types and methods
+#derive(Eq, @debug.Debug)
 pub(all) struct CapacityEvaluation {
   products : Array[CapacityProductSales]
   resources : Array[@optimizer.ResourceTotal]
@@ -37,32 +38,35 @@ pub(all) struct CapacityEvaluation {
   fixed_cost_fen : Int64
   operating_profit_fen : Int64
   explored_nodes : Int64
-} derive(Eq, @debug.Debug)
+}
 pub fn CapacityEvaluation::equal(Self, Self) -> Bool
 pub fn CapacityEvaluation::not_equal(Self, Self) -> Bool
 pub fn CapacityEvaluation::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct CapacityItem {
   product : Product
   max_units : Int64
   resource_uses : Array[@optimizer.ResourceUse]
-} derive(Eq, @debug.Debug)
+}
 pub fn CapacityItem::equal(Self, Self) -> Bool
 pub fn CapacityItem::not_equal(Self, Self) -> Bool
 pub fn CapacityItem::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct CapacityPlan {
   items : Array[CapacityItem]
   resources : Array[@optimizer.Resource]
   fixed_cost_fen : Int64
-} derive(Eq, @debug.Debug)
+}
 pub fn CapacityPlan::equal(Self, Self) -> Bool
 pub fn CapacityPlan::not_equal(Self, Self) -> Bool
 pub fn CapacityPlan::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum CapacityPlanError {
   EmptyCapacityPlan
-  InvalidCapacityProductId(Int)
+  InvalidCapacityProductId(Int32)
   DuplicateCapacityProductId(String)
   CapacityPriceOutOfRange(String)
   CapacityVariableCostOutOfRange(String)
@@ -70,32 +74,35 @@ pub(all) enum CapacityPlanError {
   CapacityFixedCostOutOfRange
   AllocationFailure(@optimizer.AllocationError)
   CapacityOverflow(String)
-} derive(Eq, @debug.Debug)
+}
 pub fn CapacityPlanError::equal(Self, Self) -> Bool
 pub fn CapacityPlanError::not_equal(Self, Self) -> Bool
 pub fn CapacityPlanError::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct CapacityProductQuantityChange {
   product_id : String
   baseline_units : Int64
   increased_capacity_units : Int64
   units_delta : Int64
-} derive(Eq, @debug.Debug)
+}
 pub fn CapacityProductQuantityChange::equal(Self, Self) -> Bool
 pub fn CapacityProductQuantityChange::not_equal(Self, Self) -> Bool
 pub fn CapacityProductQuantityChange::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct CapacityProductSales {
   product : Product
   units : Int64
   revenue_fen : Int64
   variable_cost_fen : Int64
   contribution_fen : Int64
-} derive(Eq, @debug.Debug)
+}
 pub fn CapacityProductSales::equal(Self, Self) -> Bool
 pub fn CapacityProductSales::not_equal(Self, Self) -> Bool
 pub fn CapacityProductSales::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct CapacityResourceSensitivity {
   resource_id : String
   capacity_before : Int64
@@ -108,11 +115,12 @@ pub(all) struct CapacityResourceSensitivity {
   max_nodes_per_solve : Int64
   total_node_budget : Int64
   explored_nodes_total : Int64
-} derive(Eq, @debug.Debug)
+}
 pub fn CapacityResourceSensitivity::equal(Self, Self) -> Bool
 pub fn CapacityResourceSensitivity::not_equal(Self, Self) -> Bool
 pub fn CapacityResourceSensitivity::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum CapacitySensitivityError {
   InvalidSensitivityResourceId
   SensitivityResourceNotFound(String)
@@ -121,19 +129,21 @@ pub(all) enum CapacitySensitivityError {
   SensitivitySearchBudgetOutOfRange
   SensitivityPlanFailure(CapacitySensitivityStage, CapacityPlanError)
   SensitivityDifferenceOverflow(String)
-} derive(Eq, @debug.Debug)
+}
 pub fn CapacitySensitivityError::equal(Self, Self) -> Bool
 pub fn CapacitySensitivityError::not_equal(Self, Self) -> Bool
 pub fn CapacitySensitivityError::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum CapacitySensitivityStage {
   Baseline
   IncreasedCapacity
-} derive(Eq, @debug.Debug)
+}
 pub fn CapacitySensitivityStage::equal(Self, Self) -> Bool
 pub fn CapacitySensitivityStage::not_equal(Self, Self) -> Bool
 pub fn CapacitySensitivityStage::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct MixComparison {
   baseline : MixEvaluation
   alternative : MixEvaluation
@@ -142,14 +152,15 @@ pub(all) struct MixComparison {
   fixed_cost_delta_fen : Int64
   contribution_delta_fen : Int64
   operating_profit_delta_fen : Int64
-} derive(Eq, @debug.Debug)
+}
 pub fn MixComparison::equal(Self, Self) -> Bool
 pub fn MixComparison::not_equal(Self, Self) -> Bool
 pub fn MixComparison::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum MixError {
   EmptyMix
-  InvalidProductId(Int)
+  InvalidProductId(Int32)
   DuplicateProductId(String)
   PriceOutOfRange(String)
   VariableCostOutOfRange(String)
@@ -159,11 +170,12 @@ pub(all) enum MixError {
   PlannedBundlesOutOfRange
   NonPositiveMixContribution
   Overflow(String)
-} derive(Eq, @debug.Debug)
+}
 pub fn MixError::equal(Self, Self) -> Bool
 pub fn MixError::not_equal(Self, Self) -> Bool
 pub fn MixError::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct MixEvaluation {
   profile : MixProfile
   planned_bundles : Int64
@@ -172,63 +184,69 @@ pub(all) struct MixEvaluation {
   variable_cost_fen : Int64
   contribution_fen : Int64
   operating_profit_fen : Int64
-} derive(Eq, @debug.Debug)
+}
 pub fn MixEvaluation::equal(Self, Self) -> Bool
 pub fn MixEvaluation::not_equal(Self, Self) -> Bool
 pub fn MixEvaluation::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct MixItem {
   product : Product
   weight : Int64
-} derive(Eq, @debug.Debug)
+}
 pub fn MixItem::equal(Self, Self) -> Bool
 pub fn MixItem::not_equal(Self, Self) -> Bool
 pub fn MixItem::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct MixPlan {
   items : Array[MixItem]
   fixed_cost_fen : Int64
-} derive(Eq, @debug.Debug)
+}
 pub fn MixPlan::equal(Self, Self) -> Bool
 pub fn MixPlan::not_equal(Self, Self) -> Bool
 pub fn MixPlan::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct MixProfile {
   items : Array[MixItem]
   fixed_cost_fen : Int64
   bundle_revenue_fen : Int64
   bundle_variable_cost_fen : Int64
   bundle_contribution_fen : Int64
-} derive(Eq, @debug.Debug)
+}
 pub fn MixProfile::equal(Self, Self) -> Bool
 pub fn MixProfile::not_equal(Self, Self) -> Bool
 pub fn MixProfile::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct MixTarget {
   target_profit_fen : Int64
   required : MixEvaluation
   rounding_surplus_fen : Int64
-} derive(Eq, @debug.Debug)
+}
 pub fn MixTarget::equal(Self, Self) -> Bool
 pub fn MixTarget::not_equal(Self, Self) -> Bool
 pub fn MixTarget::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct Product {
   id : String
   selling_price_fen : Int64
   variable_cost_fen : Int64
-} derive(Eq, @debug.Debug)
+}
 pub fn Product::equal(Self, Self) -> Bool
 pub fn Product::not_equal(Self, Self) -> Bool
 pub fn Product::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct ProductSales {
   product : Product
   units : Int64
   revenue_fen : Int64
   variable_cost_fen : Int64
   contribution_fen : Int64
-} derive(Eq, @debug.Debug)
+}
 pub fn ProductSales::equal(Self, Self) -> Bool
 pub fn ProductSales::not_equal(Self, Self) -> Bool
 pub fn ProductSales::to_repr(Self) -> @debug.Repr

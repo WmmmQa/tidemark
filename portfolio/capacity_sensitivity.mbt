@@ -1,15 +1,17 @@
 ///|
 /// Product quantity change between two independently proven optima.
+#derive(Eq, Debug)
 pub(all) struct CapacityProductQuantityChange {
   product_id : String
   baseline_units : Int64
   increased_capacity_units : Int64
   units_delta : Int64
-} derive(Eq, Debug)
+}
 
 ///|
 /// Exact discrete comparison after adding one unit to a selected resource.
 /// This is a finite-step difference, not a continuous shadow price.
+#derive(Eq, Debug)
 pub(all) struct CapacityResourceSensitivity {
   resource_id : String
   capacity_before : Int64
@@ -22,15 +24,17 @@ pub(all) struct CapacityResourceSensitivity {
   max_nodes_per_solve : Int64
   total_node_budget : Int64
   explored_nodes_total : Int64
-} derive(Eq, Debug)
+}
 
 ///|
+#derive(Eq, Debug)
 pub(all) enum CapacitySensitivityStage {
   Baseline
   IncreasedCapacity
-} derive(Eq, Debug)
+}
 
 ///|
+#derive(Eq, Debug)
 pub(all) enum CapacitySensitivityError {
   InvalidSensitivityResourceId
   SensitivityResourceNotFound(String)
@@ -39,7 +43,7 @@ pub(all) enum CapacitySensitivityError {
   SensitivitySearchBudgetOutOfRange
   SensitivityPlanFailure(CapacitySensitivityStage, CapacityPlanError)
   SensitivityDifferenceOverflow(String)
-} derive(Eq, Debug)
+}
 
 ///|
 /// Re-solve a capacity plan at its current limit and at one additional unit of

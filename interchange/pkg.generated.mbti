@@ -5,38 +5,41 @@ import {
   "WmmmQa/tidemark/planning",
   "WmmmQa/tidemark/portfolio",
   "moonbitlang/core/debug",
+  "moonbitlang/core/json",
 }
 
 // Values
-pub const MAX_INPUT_CODE_UNITS : Int = 16000
+pub const MAX_INPUT_CODE_UNITS : Int32 = 16000
 
-pub fn error_response(String, String) -> Json
+pub fn error_response(String, String) -> @json.Json
 
-pub fn execute_request(Request) -> Json
+pub fn execute_request(Request) -> @json.Json
 
 pub fn parse_request(String) -> Result[Request, DecodeError]
 
-pub fn run_json(String) -> Json
+pub fn run_json(String) -> @json.Json
 
 // Errors
 
 // Types and methods
+#derive(Eq, @debug.Debug)
 pub(all) enum DecodeError {
-  InputTooLarge(Int)
+  InputTooLarge(Int32)
   InvalidJson(String)
   InvalidField(String, String)
-} derive(Eq, @debug.Debug)
+}
 pub fn DecodeError::equal(Self, Self) -> Bool
 pub fn DecodeError::not_equal(Self, Self) -> Bool
 pub fn DecodeError::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum Request {
   Plan(Array[@planning.PeriodPlan])
   Comparison(Array[@planning.PeriodPlan], Array[@planning.PeriodPlan])
   Mix(@portfolio.MixPlan, Int64, Int64)
   Capacity(@portfolio.CapacityPlan, Int64)
   CapacitySensitivity(@portfolio.CapacityPlan, String, Int64)
-} derive(Eq, @debug.Debug)
+}
 pub fn Request::equal(Self, Self) -> Bool
 pub fn Request::not_equal(Self, Self) -> Bool
 pub fn Request::to_repr(Self) -> @debug.Repr

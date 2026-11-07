@@ -1,0 +1,63 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "WmmmQa/tidemark/worksheet"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn compile(String) -> Program raise Fault
+
+// Errors
+#derive(Eq, @debug.Debug)
+pub suberror Fault {
+  Fault(Position, Code, String)
+}
+pub fn Fault::equal(Self, Self) -> Bool
+pub fn Fault::not_equal(Self, Self) -> Bool
+pub fn Fault::to_repr(Self) -> @debug.Repr
+
+// Types and methods
+#derive(Eq, @debug.Debug)
+pub(all) enum Code {
+  Syntax
+  Limit
+  Duplicate
+  Unknown
+  Cycle
+  MissingInput
+  InvalidBinding
+  Overflow
+  ZeroDivisor
+  InexactDivision
+  CheckFailed
+}
+pub fn Code::equal(Self, Self) -> Bool
+pub fn Code::name(Self) -> String
+pub fn Code::not_equal(Self, Self) -> Bool
+pub fn Code::to_repr(Self) -> @debug.Repr
+
+#derive(Eq, @debug.Debug)
+pub(all) struct Position {
+  line : Int32
+  column : Int32
+}
+pub fn Position::equal(Self, Self) -> Bool
+pub fn Position::not_equal(Self, Self) -> Bool
+pub fn Position::to_repr(Self) -> @debug.Repr
+
+pub struct Program {
+  // private fields
+}
+pub fn Program::evaluate(Self, Map[String, Int64]) -> Snapshot raise Fault
+
+pub struct Snapshot {
+  // private fields
+}
+pub fn Snapshot::entries(Self) -> Array[(String, Int64)]
+pub fn Snapshot::evaluated_count(Self) -> Int32
+pub fn Snapshot::value(Self, String) -> Int64?
+
+// Type aliases
+
+// Traits
