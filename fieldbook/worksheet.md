@@ -13,10 +13,15 @@ moon run --target js cmd/reconcile -- $model units=85 actual_price=7500 actual_c
 $meter = Get-Content -Raw examples/meter-balance.worksheet
 moon run --target js cmd/reconcile -- $meter opening=100 closing=180 branch_a=35 branch_b=45 --edit closing=190 branch_b=55
 moon run --target js cmd/reconcile -- $meter opening=100 closing=180 branch_a=35 branch_b=45 --edit closing=190
+
+$stock = Get-Content -Raw examples/inventory-close.worksheet
+moon run --target js cmd/reconcile -- $stock opening=120 received=30 shipped=45 counted=105 --edit received=34 counted=109
+moon run --target js cmd/reconcile -- $stock opening=120 received=30 shipped=45 counted=105 --edit received=34
 ~~~
 
 - 预算例使用合成数据，金额以分表示。基准营业利润 101,000，预算利润 220,000，四项差异之和为 −119,000。将实际固定成本从 120,000 改为 110,000 后，差额变为 −109,000。实际利润、固定成本差异、差异汇总和校验共重算 4 项，首次执行 8 项。
 - 表计例的合成读数以整数 Wh 表示。同步更新总表和支路通过校验，分发电量从 80 变为 90。只改总表时，第 2 行第 17 列报告 `check-failed`，明细为 `90 != 80`，进程退出码为 1。库调用者仍可从旧快照发起另一批更新。
+- 仓库日结使用合成的单品库存数据。期初 120 件、入库 30 件、出库 45 件，账面与实盘均为 105 件。将入库更正为 34 件并同步更新实盘为 109 件时差异为零。仅更正入库会得出 −4 件差异，程序在第 8 行第 19 列拒绝该批修改，退出码为 1。
 - CLI 将文本作为第一个参数传入，随后是 `name=integer`，可选 `--edit` 分隔一批修改。文本大小还受终端和操作系统参数长度限制。结果的 `values` 用十进制字符串保存所有 Int64 值，`evaluated` 是执行过的公式及校验数。工作表错误输出 JSON 并退出 1，参数错误退出 2。
 
 ## 语言及运行约定

@@ -1,0 +1,8 @@
+# Reconcile a physical count against stock movements, in whole units.
+input opening
+input received
+input shipped
+input counted
+let expected = opening + received - shipped
+let discrepancy = counted - expected
+check discrepancy == 0

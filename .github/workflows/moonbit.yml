@@ -39,6 +39,11 @@ jobs:
       - name: Check native packages
         run: moon check --target native --deny-warn
 
+      - name: Build native and JS packages
+        run: |
+          moon build --target native --deny-warn
+          moon build --target js --deny-warn
+
       - name: Run calculation and JSON boundary tests
         run: moon test --target native --deny-warn
 
@@ -57,6 +62,7 @@ jobs:
         shell: bash
         run: |
           model="$(cat examples/meter-balance.worksheet)"
+          inventory="$(cat examples/inventory-close.worksheet)"
           for target in native js; do
             output="$(moon run --target "$target" cmd/reconcile -- "$model" opening=100 closing=180 branch_a=35 branch_b=45 --edit closing=190 branch_b=55)"
             grep -Fq '"delivered":"90"' <<< "$output"
@@ -65,6 +71,13 @@ jobs:
               exit 1
             fi
             grep -Fq '"error":"check-failed","line":2,"column":17' <<< "$output"
+            output="$(moon run --target "$target" cmd/reconcile -- "$inventory" opening=120 received=30 shipped=45 counted=105 --edit received=34 counted=109)"
+            grep -Fq '"expected":"109","discrepancy":"0"' <<< "$output"
+            if output="$(moon run --target "$target" cmd/reconcile -- "$inventory" opening=120 received=30 shipped=45 counted=105 --edit received=34)"; then
+              echo "Unbalanced inventory unexpectedly passed" >&2
+              exit 1
+            fi
+            grep -Fq '"error":"check-failed","line":8,"column":19,"detail":"-4 != 0"' <<< "$output"
           done
 
       - name: Run portfolio import example

@@ -9,12 +9,16 @@ An edit reevaluates formulas and checks fed by changed values. Unknown names,
 cycles, arithmetic errors and failed checks report a source location.
 
 **November scope.** The new `worksheet` package has no dependency on the
-October optimizer or finance packages. The budget bridge and meter balance
-exercise the same language and runtime. The repository was first submitted
+October optimizer or finance packages. The budget bridge, meter balance and
+inventory close exercise the same language and runtime. The repository was first submitted
 in October and did not pass initial review. The earlier optimization and
 accounting features remain available below.
 
 ### Verify the November work
+
+Install the [MoonBit toolchain](https://www.moonbitlang.com/download) and
+Node.js 22 or later for the JS example. Run the commands from the repository
+root after cloning `https://github.com/WmmmQa/tidemark.git`.
 
 ```powershell
 $model = Get-Content -Raw examples/budget-reconcile.worksheet
@@ -24,8 +28,8 @@ moon test worksheet --target js --deny-warn
 
 The initial profit bridge is −119,000 fen. Changing only actual fixed cost
 to 110,000 fen makes it −109,000 fen and executes 4 of the 8 formulas and
-checks. The [worksheet guide](fieldbook/worksheet.md) includes a failing
-meter check, the language contract and the library API.
+checks. The [worksheet guide](fieldbook/worksheet.md) includes the meter and
+inventory cases, the language contract and the library API.
 
 ## October foundation
 
