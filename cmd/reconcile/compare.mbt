@@ -56,7 +56,7 @@ fn render_replay(result : @worksheet.ReplayResult) -> Json {
 }
 
 ///|
-fn run_comparison(arguments : ArrayView[String]) -> Json raise {
+fn run_comparison(arguments : ArrayView[String], gate~ : Bool) -> Json raise {
   guard arguments is [old, new, .. samples] && !samples.is_empty() else {
     raise Usage(
       "pass --compare BASELINE CANDIDATE and one or more NAME:key=value,key=value cases",
@@ -102,5 +102,22 @@ fn run_comparison(arguments : ArrayView[String]) -> Json raise {
     }
   }
   let results = @worksheet.compare_revisions(baseline, candidate, cases[:])
-  { "cases": Json::array(results.map(render_replay)) }
+  let report : Json = { "cases": Json::array(results.map(render_replay)) }
+  if gate && results.any(result => blocks_release(result.outcome)) {
+    println(report.stringify())
+    @env.exit(3)
+  }
+  report
+}
+
+///|
+fn blocks_release(outcome : @worksheet.RevisionOutcome) -> Bool {
+  match outcome {
+    CandidateRejected(_) => true
+    Changed(outputs) =>
+      outputs.any(change => {
+        change.before is Some(_) && change.before != change.after
+      })
+    _ => false
+  }
 }

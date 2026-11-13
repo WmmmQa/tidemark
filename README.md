@@ -2,7 +2,8 @@
 
 Compare two worksheet revisions before changing deployed rules. Replay named
 input cases and review formula output changes and validation regressions in a
-JSON report. See the [revision replay example](fieldbook/revision-replay.md).
+JSON report. Use `--gate` in CI to reject breaking changes on those cases.
+See the [revision replay example](fieldbook/revision-replay.md).
 
 **A MoonBit runtime for exact, incremental reconciliation of integer worksheets.**
 

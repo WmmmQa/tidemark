@@ -49,7 +49,10 @@ fn render(snapshot : @worksheet.Snapshot) -> Json {
 ///|
 fn run(arguments : ArrayView[String]) -> Json raise {
   if arguments is ["--compare", .. rest] {
-    return run_comparison(rest)
+    return run_comparison(rest, gate=false)
+  }
+  if arguments is ["--gate", .. rest] {
+    return run_comparison(rest, gate=true)
   }
   guard arguments is [source, .. bindings] else {
     raise Usage(

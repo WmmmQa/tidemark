@@ -80,6 +80,25 @@ jobs:
             grep -Fq '"error":"check-failed","line":8,"column":19,"detail":"-4 != 0"' <<< "$output"
           done
 
+      - name: Verify worksheet revision release gate on native and JS
+        shell: bash
+        run: |
+          old="$(cat examples/revision-baseline.worksheet)"
+          new="$(cat examples/inventory-close-v2.worksheet)"
+          sample='baseline:opening=120,received=30,shipped=45,counted=105,damaged=4'
+          for target in native js; do
+            moon run --target "$target" cmd/reconcile -- --gate "$old" "$old" "$sample"
+            status=0
+            output="$(moon run --target "$target" cmd/reconcile -- --gate "$old" "$new" "$sample")" || status=$?
+            test "$status" -eq 3
+            grep -Fq '"status":"candidate-rejected"' <<< "$output"
+            status=0
+            output="$(moon run --target "$target" cmd/reconcile -- --gate "$old" "$new" 'schema:opening=120,received=30,shipped=45,counted=105,damaged=0')" || status=$?
+            test "$status" -eq 3
+            grep -Fq '"name":"movement","before":"-15","after":null' <<< "$output"
+            moon run --target "$target" cmd/reconcile -- --gate "$old" "$new" 'recovery:opening=120,received=30,shipped=45,counted=101,damaged=4'
+          done
+
       - name: Run portfolio import example
         shell: bash
         run: |
