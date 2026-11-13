@@ -1,5 +1,9 @@
 # Tidemark
 
+Compare two worksheet revisions before changing deployed rules. Replay named
+input cases and review formula output changes and validation regressions in a
+JSON report. See the [revision replay example](fieldbook/revision-replay.md).
+
 **A MoonBit runtime for exact, incremental reconciliation of integer worksheets.**
 
 Write inputs, named formulas and equality checks in a text file. The runtime

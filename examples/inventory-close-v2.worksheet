@@ -1,0 +1,10 @@
+# Candidate rule subtracts damaged stock before reconciliation.
+input opening
+input received
+input shipped
+input counted
+input damaged
+let expected = opening + received - shipped - damaged
+let discrepancy = counted - expected
+check discrepancy == 0
+let net_movement = received - shipped - damaged

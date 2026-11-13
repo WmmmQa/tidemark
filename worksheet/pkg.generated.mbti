@@ -6,6 +6,8 @@ import {
 }
 
 // Values
+pub fn compare_revisions(Program, Program, ArrayView[ReplayCase]) -> Array[ReplayResult]
+
 pub fn compile(String) -> Program raise Fault
 
 // Errors
@@ -37,6 +39,12 @@ pub fn Code::name(Self) -> String
 pub fn Code::not_equal(Self, Self) -> Bool
 pub fn Code::to_repr(Self) -> @debug.Repr
 
+pub(all) struct OutputChange {
+  name : String
+  before : Int64?
+  after : Int64?
+}
+
 #derive(Eq, @debug.Debug)
 pub(all) struct Position {
   line : Int32
@@ -50,6 +58,24 @@ pub struct Program {
   // private fields
 }
 pub fn Program::evaluate(Self, Map[String, Int64]) -> Snapshot raise Fault
+
+pub(all) struct ReplayCase {
+  name : String
+  bindings : Map[String, Int64]
+}
+
+pub(all) struct ReplayResult {
+  name : String
+  outcome : RevisionOutcome
+}
+
+pub(all) enum RevisionOutcome {
+  Equivalent
+  Changed(Array[OutputChange])
+  BaselineRejected(Fault)
+  CandidateRejected(Fault)
+  BothRejected(Fault, Fault)
+}
 
 pub struct Snapshot {
   // private fields

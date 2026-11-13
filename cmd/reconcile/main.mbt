@@ -48,6 +48,9 @@ fn render(snapshot : @worksheet.Snapshot) -> Json {
 
 ///|
 fn run(arguments : ArrayView[String]) -> Json raise {
+  if arguments is ["--compare", .. rest] {
+    return run_comparison(rest)
+  }
   guard arguments is [source, .. bindings] else {
     raise Usage(
       "pass SOURCE followed by name=integer bindings and optional --edit name=integer bindings",
@@ -80,13 +83,8 @@ fn main {
   let arguments = @env.args()
   let offset = argument_prefix_length()
   let result = run(arguments[offset:]) catch {
-    @worksheet.Fault(at, code, detail) => {
-      let error : Json = {
-        "error": Json::string(code.name()),
-        "line": Json::number(at.line.to_double()),
-        "column": Json::number(at.column.to_double()),
-        "detail": Json::string(detail),
-      }
+    @worksheet.Fault(_, _, _) as fault => {
+      let error = render_fault(fault)
       println(error.stringify())
       @env.exit(1)
     }

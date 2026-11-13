@@ -1,0 +1,10 @@
+# Historical rules record damaged stock but do not deduct it.
+input opening
+input received
+input shipped
+input counted
+input damaged
+let expected = opening + received - shipped
+let discrepancy = counted - expected
+let movement = received - shipped
+check discrepancy == 0
