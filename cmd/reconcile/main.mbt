@@ -48,6 +48,9 @@ fn render(snapshot : @worksheet.Snapshot) -> Json {
 
 ///|
 fn run(arguments : ArrayView[String]) -> Json raise {
+  if arguments is ["--check-units", .. rest] {
+    return run_unit_check(rest)
+  }
   if arguments is ["--compare", .. rest] {
     return run_comparison(rest, gate=false)
   }
