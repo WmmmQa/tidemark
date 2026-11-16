@@ -60,6 +60,7 @@ pub struct Program {
 }
 pub fn Program::check_units(Self, Map[String, Array[UnitFactor]]) -> Unit raise Fault
 pub fn Program::evaluate(Self, Map[String, Int64]) -> Snapshot raise Fault
+pub fn Program::formula_units(Self, Map[String, Array[UnitFactor]]) -> Map[String, Array[UnitFactor]] raise Fault
 
 pub(all) struct ReplayCase {
   name : String

@@ -3,7 +3,7 @@ test "static units propagate through forward references and cancel rates" {
   let sheet = @worksheet.compile(
     "check charge == recorded\nlet charge = rate * items\nlet recovered = charge / rate\ncheck recovered == items\ninput rate\ninput items\ninput recorded",
   )
-  sheet.check_units({
+  let formulas = sheet.formula_units({
     "rate": [
       { symbol: "fen", exponent: 1L, },
       { symbol: "item", exponent: -1L, },
@@ -11,6 +11,13 @@ test "static units propagate through forward references and cancel rates" {
     "items": [{ symbol: "item", exponent: 1L, }],
     "recorded": [{ symbol: "fen", exponent: 1L, }],
   })
+  guard formulas["charge"] is [{ symbol: "fen", exponent: 1L, }] else {
+    fail("charge must be in fen")
+  }
+  guard formulas["recovered"] is [{ symbol: "item", exponent: 1L, }] else {
+    fail("recovered quantity must be in items")
+  }
+  assert_eq(formulas.length(), 2)
 }
 
 ///|

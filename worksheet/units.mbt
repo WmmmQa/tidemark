@@ -106,6 +106,37 @@ pub fn Program::check_units(
   self : Program,
   declarations : Map[String, Array[UnitFactor]],
 ) -> Unit raise Fault {
+  ignore(self.infer_units(declarations))
+}
+
+///|
+/// Infer units for every named formula without evaluating integers.
+/// Returns canonical factors sorted by symbol. A dimensionless formula has no factors.
+pub fn Program::formula_units(
+  self : Program,
+  declarations : Map[String, Array[UnitFactor]],
+) -> Map[String, Array[UnitFactor]] raise Fault {
+  let units = self.infer_units(declarations)
+  let formulas : Map[String, Array[UnitFactor]] = Map([])
+  for slot, row in self.rows {
+    if row.kind is Formula(name) {
+      let product = units[slot]
+      let symbols = product.keys().collect()
+      symbols.sort_by((a, b) => a.compare(b))
+      formulas[name] = symbols.map(symbol => {
+        symbol,
+        exponent: product[symbol],
+      })
+    }
+  }
+  formulas
+}
+
+///|
+fn Program::infer_units(
+  self : Program,
+  declarations : Map[String, Array[UnitFactor]],
+) -> Array[UnitProduct] raise Fault {
   let units : Array[UnitProduct] = Array::makei(self.rows.length(), _ => Map([]))
   for name, factors in declarations {
     let slot = self.input_slot(name)
@@ -136,4 +167,5 @@ pub fn Program::check_units(
       units[slot] = infer_row(row, units)
     }
   }
+  units
 }
