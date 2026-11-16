@@ -25,6 +25,7 @@ pub(all) enum Code {
   ZeroDivisor
   InexactDivision
   CheckFailed
+  UnitMismatch
 }
 
 ///|
@@ -48,6 +49,7 @@ pub fn Code::name(self : Code) -> String {
     ZeroDivisor => "zero-divisor"
     InexactDivision => "inexact-division"
     CheckFailed => "check-failed"
+    UnitMismatch => "unit-mismatch"
   }
 }
 

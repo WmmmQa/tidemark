@@ -1,5 +1,8 @@
 # Tidemark
 
+Check worksheet formula units before supplying numeric data. See the
+[static unit checks and examples](fieldbook/static-unit-check.md).
+
 Compare two worksheet revisions before changing deployed rules. Replay named
 input cases and review formula output changes and validation regressions in a
 JSON report. Use `--gate` in CI to reject breaking changes on those cases.

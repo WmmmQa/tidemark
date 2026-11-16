@@ -33,6 +33,7 @@ pub(all) enum Code {
   ZeroDivisor
   InexactDivision
   CheckFailed
+  UnitMismatch
 }
 pub fn Code::equal(Self, Self) -> Bool
 pub fn Code::name(Self) -> String
@@ -57,6 +58,7 @@ pub fn Position::to_repr(Self) -> @debug.Repr
 pub struct Program {
   // private fields
 }
+pub fn Program::check_units(Self, Map[String, Array[UnitFactor]]) -> Unit raise Fault
 pub fn Program::evaluate(Self, Map[String, Int64]) -> Snapshot raise Fault
 
 pub(all) struct ReplayCase {
@@ -84,6 +86,11 @@ pub fn Snapshot::entries(Self) -> Array[(String, Int64)]
 pub fn Snapshot::evaluated_count(Self) -> Int32
 pub fn Snapshot::update(Self, Map[String, Int64]) -> Self raise Fault
 pub fn Snapshot::value(Self, String) -> Int64?
+
+pub(all) struct UnitFactor {
+  symbol : String
+  exponent : Int64
+}
 
 // Type aliases
 
