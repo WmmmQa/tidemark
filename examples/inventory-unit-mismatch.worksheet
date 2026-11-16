@@ -1,0 +1,3 @@
+input counted
+input book_value
+check counted == book_value

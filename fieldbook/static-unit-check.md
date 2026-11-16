@@ -10,12 +10,43 @@
 
 调用 `Program::check_units`，为每个输入声明因子及指数。无单位的输入用空数组。乘和除分别累加和扣减指数，指数为零的因子消去。加减和等式校验要求两边单位完全一致。检查按依赖顺序进行，允许前向引用。首个不匹配返回 `Fault`，带操作符行列号及两边的单位。源代码和测试均在 `worksheet/`。
 
-三个可复核的用途：
+## 从仓库根目录复现
 
-- 计费使用 `fen/item × item` 推出 `fen`，可以与结算金额比较。
-- 仓储把库存件数直接与金额比较时，即使两个输入碰巧都是 5，静态检查仍报告单位不匹配。
-- 表计工作表可为总表、支路和线损声明 `Wh`，减去线损后仍是 `Wh`。将某个计量输入误声明为其他单位会在校验前被发现。
+安装 MoonBit 和 Node.js。以下是 PowerShell 命令，三个工作表都是合成案例。
+在 Bash 中可将 `$model` 替换为 `"$(cat examples/对应文件.worksheet)"`。
+`--check-units` 只接收单位声明，格式为 `输入名=符号^指数`。
+复合单位用逗号连接，`输入名=1` 表示无单位。
 
-单位符号由调用方约定，`Wh` 与 `kWh` 不会自动换算。所有整数常量都是无单位值，带单位的阈值需要声明为输入。因子指数限制在 −1024 到 1024。检查是独立的库 API，既有数值求值、回放和 CLI 保留原接口。规则的单位正确仍需用回放验证业务结果。
+### 计费 · 推导公式结果
 
-运行 `moon test worksheet --target js --deny-warn`。正式复审材料由参赛者根据实际运行和理解自行撰写，按章程保留三个场景与 AI 使用说明。邮件中的重新申报期限为 2026 年 11 月 30 日前。
+商品数量以件计，单价是分每件，发票金额以分计。推导得到 `charge = fen^1`，退出码为 0。
+
+```powershell
+$model = Get-Content -Raw examples/billing-units.worksheet
+moon run --target js cmd/reconcile -- --check-units $model 'quantity=item^1' 'price=fen^1,item^-1' 'invoice=fen^1'
+```
+
+### 库存 · 找出数值恰好相等时的漏判
+
+盘点件数误和账面金额比较。两者填入 5 时，数值校验成功。输入单位声明后，静态检查在第三行第 15 列的等号处返回 `item^1 vs fen^1`，退出码为 1。
+
+```powershell
+$model = Get-Content -Raw examples/inventory-unit-mismatch.worksheet
+moon run --target js cmd/reconcile -- $model counted=5 book_value=5
+moon run --target js cmd/reconcile -- --check-units $model 'counted=item^1' 'book_value=fen^1'
+```
+
+### 表计 · 定位两个支路的单位冲突
+
+总表期初、期末及两条支路统一用 Wh 时，推导得到 `delivered = Wh^1`，退出码为 0。
+把第二条支路标成 kWh 后，第二行第 29 列的加号报 `Wh^1 vs kWh^1`，退出码为 1。
+
+```powershell
+$model = Get-Content -Raw examples/meter-balance.worksheet
+moon run --target js cmd/reconcile -- --check-units $model 'opening=Wh^1' 'closing=Wh^1' 'branch_a=Wh^1' 'branch_b=Wh^1'
+moon run --target js cmd/reconcile -- --check-units $model 'opening=Wh^1' 'closing=Wh^1' 'branch_a=Wh^1' 'branch_b=kWh^1'
+```
+
+单位符号由调用方约定，`Wh` 与 `kWh` 不会自动换算。所有整数常量都是无单位值，带单位的阈值需要声明为输入。因子指数限制在 −1024 到 1024。命令成功时输出公式名及规范化后的单位因子，首次静态错误输出诊断并退出。声明参数格式错误的退出码为 2。规则的单位正确仍需用回放验证业务结果。
+
+工作表包测试可通过 `moon test worksheet --target js --deny-warn` 运行。

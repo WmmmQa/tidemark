@@ -1,0 +1,5 @@
+input quantity
+input price
+input invoice
+let charge = price * quantity
+check charge == invoice

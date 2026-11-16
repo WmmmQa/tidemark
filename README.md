@@ -1,7 +1,8 @@
 # Tidemark
 
-Check worksheet formula units before supplying numeric data. See the
-[static unit checks and examples](fieldbook/static-unit-check.md).
+Run `cmd/reconcile --check-units` to infer formula units before supplying numeric
+data. The [static unit-check guide](fieldbook/static-unit-check.md) shows how to
+reproduce billing, inventory, and meter examples from the command line.
 
 Compare two worksheet revisions before changing deployed rules. Replay named
 input cases and review formula output changes and validation regressions in a
